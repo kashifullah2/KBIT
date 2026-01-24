@@ -5,17 +5,23 @@ function App() {
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // ✅ Use environment variable for backend URL
+  const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
   const analyze = async () => {
-    if (!text.trim()) return alert("Please enter some text first!");
+    if (!text.trim()) {
+      alert("Please enter some text first!");
+      return;
+    }
 
     setLoading(true);
     setResult("");
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/analyze", {
+      const res = await fetch(`${API_URL}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({ text }),
       });
 
       if (!res.ok) throw new Error("Server error");
@@ -31,7 +37,14 @@ function App() {
   };
 
   return (
-    <div style={{ padding: "40px", fontFamily: "sans-serif", maxWidth: "500px" }}>
+    <div
+      style={{
+        padding: "40px",
+        fontFamily: "sans-serif",
+        maxWidth: "500px",
+        margin: "auto",
+      }}
+    >
       <h2>Sentiment Analyzer</h2>
 
       <textarea
@@ -41,17 +54,24 @@ function App() {
         value={text}
         onChange={(e) => setText(e.target.value)}
       />
-      <br />
 
-      <button 
-        onClick={analyze} 
+      <button
+        onClick={analyze}
         disabled={loading}
-        style={{ padding: "10px 20px", cursor: "pointer" }}
+        style={{
+          padding: "10px 20px",
+          cursor: loading ? "not-allowed" : "pointer",
+          backgroundColor: "#007bff",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+        }}
       >
         {loading ? "Analyzing..." : "Analyze"}
       </button>
 
       {loading && <p>⏳ Processing sentiment...</p>}
+
       {result && (
         <p style={{ marginTop: "20px", fontSize: "1.2rem" }}>
           <b>Result:</b> {result}
