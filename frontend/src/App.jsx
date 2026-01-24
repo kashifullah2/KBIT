@@ -12,7 +12,6 @@ function App() {
     setResult("");
 
     try {
-      // If running locally, use http://localhost:8000/analyze
       const res = await fetch("http://127.0.0.1:8000/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
