@@ -5,8 +5,7 @@ function App() {
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ Use environment variable for backend URL
-  const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+  const API_URL = import.meta.env.VITE_API_URL || "https://kbit-d6xwq.sevalla.app";
 
   const analyze = async () => {
     if (!text.trim()) {
