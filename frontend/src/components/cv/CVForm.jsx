@@ -3,6 +3,8 @@ import { ChevronDown, ChevronUp, Plus, Trash2, Wand2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 const Section = ({ title, isOpen, onToggle, children }) => (
     <div className="border border-slate-200 rounded-xl overflow-hidden mb-4 bg-white shadow-sm">
         <button
@@ -84,7 +86,7 @@ export function CVForm({ data, onUpdate }) {
 
     const handleImprove = async (text, callback) => {
         try {
-            const res = await fetch('http://127.0.0.1:8000/cv/improve', {
+            const res = await fetch(`${API_URL}/cv/improve`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text, section: 'general' })
