@@ -3,7 +3,7 @@ import { FileUpload } from '../components/FileUpload';
 import { DataDisplay } from '../components/DataDisplay';
 import { Loader2, AlertCircle } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+import { API_URL } from '../config';
 
 export function Extractor() {
     const [data, setData] = useState([]);
@@ -86,7 +86,7 @@ export function Extractor() {
             {/* Hero Section */}
             <div className="text-center space-y-4 max-w-2xl mx-auto pt-10">
                 <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
-                    Turn Images into <span className="text-indigo-600">Structured Data</span>
+                    Turn Images and PDFS into <span className="text-indigo-600">Structured Data</span>
                 </h2>
                 <p className="text-lg text-slate-500">
                     Upload receipts, invoices, or forms. Our AI extracts the data you need in seconds.

@@ -1,9 +1,10 @@
+```javascript
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Plus, Trash2, Wand2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+import { API_URL } from '../../config';
 
 const Section = ({ title, isOpen, onToggle, children }) => (
     <div className="border border-slate-200 rounded-xl overflow-hidden mb-4 bg-white shadow-sm">
@@ -86,7 +87,7 @@ export function CVForm({ data, onUpdate }) {
 
     const handleImprove = async (text, callback) => {
         try {
-            const res = await fetch(`${API_URL}/cv/improve`, {
+            const res = await fetch(`${ API_URL } /cv/improve`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text, section: 'general' })
@@ -239,8 +240,8 @@ export function CVForm({ data, onUpdate }) {
                 <Section
                     key={sectionIndex}
                     title={section.title || "Custom Section"}
-                    isOpen={openSection === `custom-${sectionIndex}`}
-                    onToggle={() => toggleSection(`custom-${sectionIndex}`)}
+                    isOpen={openSection === `custom - ${ sectionIndex } `}
+                    onToggle={() => toggleSection(`custom - ${ sectionIndex } `)}
                 >
                     <div className="mb-4 flex items-center gap-2">
                         <input
