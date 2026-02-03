@@ -131,12 +131,7 @@ async def process_single_file(file: UploadFile, schema: str = None) -> Extracted
             "raw_text": ""
         }
 
-@app.post("/upload")
-async def upload_files(files: List[UploadFile] = File(...)):
-    # Process files in parallel
-    tasks = [process_single_file(file) for file in files]
-    results = await asyncio.gather(*tasks)
-    return results
+
 
 @app.post("/refine")
 async def refine_data(request: RefineRequest):
@@ -187,3 +182,23 @@ async def analyze_sentiment(data: TextInput):
     return {
         "sentiment": result.content.strip()
     }
+
+class ImproveRequest(BaseModel):
+    text: str
+    section: str = "general"
+
+@app.post("/cv/improve")
+async def improve_cv_text(request: ImproveRequest):
+    system_prompt = f"""You are a professional CV editor.
+    Improve the following text for a {request.section} section of a resume.
+    Make it more professional, impactful, and concise. Use active verbs.
+    Return ONLY the improved text, no explanations.
+    """
+    
+    chain = ChatPromptTemplate.from_messages([
+        ("system", system_prompt),
+        ("human", "{text}")
+    ]) | llm
+
+    result = await chain.ainvoke({"text": request.text})
+    return {"improved_text": result.content.strip()}
