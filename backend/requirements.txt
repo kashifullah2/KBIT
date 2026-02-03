@@ -7,3 +7,9 @@ langchain-groq
 groq
 pydantic
 fastapi[all]
+python-multipart
+pytesseract
+Pillow
+pypdf
+pandas
+openpyxl

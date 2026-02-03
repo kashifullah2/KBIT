@@ -1,4 +1,8 @@
-body {
-  margin: 0;
-  font-family: sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+  }
 }

@@ -1,9 +1,0 @@
-fastapi[standard]
-uvicorn
-python-dotenv
-langchain
-langchain-core
-langchain-groq
-groq
-pydantic
-fastapi[all]
