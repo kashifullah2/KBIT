@@ -6,3 +6,31 @@
     @apply bg-slate-50 text-slate-900 antialiased;
   }
 }
+
+@media print {
+  @page {
+    size: auto;
+    margin: 15mm;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Remove component padding in print since @page handles it */
+  .print-p-0 {
+    padding: 0 !important;
+  }
+
+  /* Page break utilities */
+  .break-inside-avoid {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Remove shadows in print */
+  * {
+    box-shadow: none !important;
+  }
+}

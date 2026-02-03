@@ -1,7 +1,7 @@
 import React from 'react';
 
 export const Modern = React.forwardRef(({ data }, ref) => {
-    const { personal, experience, education, skills } = data;
+    const { personal, experience, education, skills, customSections } = data;
 
     return (
         <div ref={ref} className="w-[210mm] min-h-[297mm] bg-white text-slate-800 p-12 shadow-lg mx-auto">
@@ -73,7 +73,7 @@ export const Modern = React.forwardRef(({ data }, ref) => {
 
             {/* Skills */}
             {skills.length > 0 && skills.some(s => s.trim()) && (
-                <section>
+                <section className="mb-8">
                     <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4">Skills</h2>
                     <div className="flex flex-wrap gap-2">
                         {skills.map((skill, index) => (
@@ -86,6 +86,25 @@ export const Modern = React.forwardRef(({ data }, ref) => {
                     </div>
                 </section>
             )}
+
+
+            {/* Custom Sections */}
+            {customSections && customSections.map((section, index) => (
+                <section key={index} className="mb-8">
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4">{section.title}</h2>
+                    <div className="space-y-4">
+                        {section.items.map((item, idx) => (
+                            <div key={idx}>
+                                <div className="font-bold text-slate-800 text-base mb-1">{item.title}</div>
+                                <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
+                                    {item.description}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            ))}
+
         </div>
     );
 });

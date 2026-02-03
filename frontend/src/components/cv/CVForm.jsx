@@ -233,6 +233,97 @@ export function CVForm({ data, onUpdate }) {
                     <Plus className="w-4 h-4" /> Add Skill
                 </button>
             </Section>
+
+            {/* Custom Sections */}
+            {data.customSections && data.customSections.map((section, sectionIndex) => (
+                <Section
+                    key={sectionIndex}
+                    title={section.title || "Custom Section"}
+                    isOpen={openSection === `custom-${sectionIndex}`}
+                    onToggle={() => toggleSection(`custom-${sectionIndex}`)}
+                >
+                    <div className="mb-4 flex items-center gap-2">
+                        <input
+                            value={section.title}
+                            onChange={(e) => {
+                                const newSections = [...data.customSections];
+                                newSections[sectionIndex].title = e.target.value;
+                                onUpdate('customSections', newSections);
+                            }}
+                            className="flex-1 px-3 py-2 text-sm font-semibold border-b border-slate-200 focus:outline-none focus:border-indigo-500"
+                            placeholder="Section Title (e.g., Certifications)"
+                        />
+                        <button
+                            onClick={() => {
+                                const newSections = data.customSections.filter((_, i) => i !== sectionIndex);
+                                onUpdate('customSections', newSections);
+                            }}
+                            className="text-xs text-red-500 hover:text-red-700"
+                        >
+                            Remove Section
+                        </button>
+                    </div>
+
+                    {section.items.map((item, itemIndex) => (
+                        <div key={itemIndex} className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-4 relative group">
+                            <button
+                                onClick={() => {
+                                    const newSections = [...data.customSections];
+                                    newSections[sectionIndex].items = section.items.filter((_, i) => i !== itemIndex);
+                                    onUpdate('customSections', newSections);
+                                }}
+                                className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                            <InputGroup
+                                label="Title"
+                                value={item.title}
+                                onChange={(v) => {
+                                    const newSections = [...data.customSections];
+                                    newSections[sectionIndex].items[itemIndex].title = v;
+                                    onUpdate('customSections', newSections);
+                                }}
+                                placeholder="Item Title"
+                            />
+                            <InputGroup
+                                label="Description"
+                                value={item.description}
+                                onChange={(v) => {
+                                    const newSections = [...data.customSections];
+                                    newSections[sectionIndex].items[itemIndex].description = v;
+                                    onUpdate('customSections', newSections);
+                                }}
+                                type="textarea"
+                                aiEnabled
+                                onImprove={handleImprove}
+                                placeholder="Description..."
+                            />
+                        </div>
+                    ))}
+                    <button
+                        onClick={() => {
+                            const newSections = [...data.customSections];
+                            newSections[sectionIndex].items.push({ title: '', description: '' });
+                            onUpdate('customSections', newSections);
+                        }}
+                        className="w-full py-2 border-2 border-dashed border-slate-200 rounded-lg text-slate-500 font-medium hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50 transition-all flex items-center justify-center gap-2 mt-4"
+                    >
+                        <Plus className="w-4 h-4" /> Add Item
+                    </button>
+                </Section>
+            ))}
+
+            <button
+                onClick={() => {
+                    const newSections = data.customSections ? [...data.customSections] : [];
+                    newSections.push({ title: '', items: [] });
+                    onUpdate('customSections', newSections);
+                }}
+                className="w-full py-3 bg-indigo-50 text-indigo-700 rounded-xl font-medium hover:bg-indigo-100 transition-all flex items-center justify-center gap-2 mt-6"
+            >
+                <Plus className="w-5 h-5" /> Add Custom Section
+            </button>
         </div>
     );
 }
