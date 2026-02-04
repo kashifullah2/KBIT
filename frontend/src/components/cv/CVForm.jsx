@@ -1,4 +1,3 @@
-```javascript
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Plus, Trash2, Wand2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
