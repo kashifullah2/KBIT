@@ -202,3 +202,25 @@ async def improve_cv_text(request: ImproveRequest):
 
     result = await chain.ainvoke({"text": request.text})
     return {"improved_text": result.content.strip()}
+
+@app.get("/debug-ocr")
+async def debug_ocr():
+    import shutil
+    import subprocess
+    
+    tesseract_path = shutil.which("tesseract")
+    tesseract_version = "Unknown"
+    
+    if tesseract_path:
+        try:
+            tesseract_version = subprocess.check_output([tesseract_path, "--version"]).decode().split("\n")[0]
+        except Exception as e:
+            tesseract_version = f"Error getting version: {e}"
+
+    return {
+        "tesseract_path": tesseract_path,
+        "tesseract_version": tesseract_version,
+        "path_env": os.environ.get("PATH"),
+        "cwd": os.getcwd(),
+        "files_in_cwd": os.listdir(".")
+    }
