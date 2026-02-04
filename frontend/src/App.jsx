@@ -18,12 +18,11 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-
           <Route path="/" element={<Layout />}>
             <Route index element={<Extractor />} />
             <Route path="cv-builder" element={<CVBuilder />} />
+            <Route path="login" element={<Login />} />
+            <Route path="signup" element={<Signup />} />
           </Route>
         </Routes>
       </AuthProvider>

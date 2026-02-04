@@ -19,7 +19,8 @@ export function AuthModal({ isOpen, onClose, onSuccess }) {
         last_name: '',
         phone: '',
         gender: 'Prefer not to say',
-        address: ''
+        address: '',
+        confirm_password: ''
     });
 
     if (!isOpen) return null;
@@ -35,12 +36,17 @@ export function AuthModal({ isOpen, onClose, onSuccess }) {
             if (mode === 'login') {
                 await login(loginData.email, loginData.password);
             } else {
-                await signup(signupData);
+                if (signupData.password !== signupData.confirm_password) {
+                    throw new Error("Passwords do not match");
+                }
+                // Exclude confirm_password before sending to backend
+                const { confirm_password, ...dataToSend } = signupData;
+                await signup(dataToSend);
             }
             onSuccess();
             onClose();
         } catch (err) {
-            setError(err.response?.data?.detail || 'Authentication failed. Please try again.');
+            setError(err.response?.data?.detail || err.message || 'Authentication failed. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -186,6 +192,24 @@ export function AuthModal({ isOpen, onClose, onSuccess }) {
                                 />
                             </div>
                         </div>
+
+                        {mode === 'signup' && (
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Confirm Password</label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                                    <input
+                                        type="password"
+                                        name="confirm_password"
+                                        required
+                                        value={signupData.confirm_password}
+                                        onChange={handleSignupChange}
+                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                                        placeholder="••••••••"
+                                    />
+                                </div>
+                            </div>
+                        )}
 
                         <button
                             type="submit"

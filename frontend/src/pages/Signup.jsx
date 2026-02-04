@@ -7,6 +7,7 @@ export function Signup() {
     const [formData, setFormData] = useState({
         email: '',
         password: '',
+        confirm_password: '',
         first_name: '',
         last_name: '',
         phone: '',
@@ -27,10 +28,14 @@ export function Signup() {
         setError('');
         setIsLoading(true);
         try {
-            await signup(formData);
+            if (formData.password !== formData.confirm_password) {
+                throw new Error("Passwords do not match");
+            }
+            const { confirm_password, ...dataToSend } = formData;
+            await signup(dataToSend);
             navigate('/cv-builder');
         } catch (err) {
-            setError(err.response?.data?.detail || 'Failed to create account. Please try again.');
+            setError(err.response?.data?.detail || err.message || 'Failed to create account. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -144,6 +149,19 @@ export function Signup() {
                             name="password"
                             required
                             value={formData.password}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
+                            placeholder="••••••••"
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-700">Confirm Password</label>
+                        <input
+                            type="password"
+                            name="confirm_password"
+                            required
+                            value={formData.confirm_password}
                             onChange={handleChange}
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
                             placeholder="••••••••"

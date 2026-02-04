@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
+import { Footer } from './Footer';
 import { cn } from '../lib/utils';
 
 import { useLocation } from 'react-router-dom';
@@ -19,10 +20,11 @@ export function Layout() {
                 <Header />
                 <main className={cn(
                     "w-full mx-auto px-4 sm:px-6 lg:px-8",
-                    isCVBuilder ? "flex-1 overflow-hidden py-6 h-[calc(100vh-4rem)]" : "max-w-7xl py-10"
+                    isCVBuilder ? "flex-1 overflow-hidden py-6" : "max-w-7xl py-10"
                 )}>
                     <Outlet />
                 </main>
+                <Footer />
             </div>
         </div>
     );

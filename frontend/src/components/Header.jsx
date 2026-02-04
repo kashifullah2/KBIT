@@ -63,7 +63,7 @@ export function Header() {
                                 to="/signup"
                                 className="px-5 py-2 text-sm font-medium text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition-all shadow-sm shadow-slate-200 hover:shadow-md"
                             >
-                                Get Started
+                                Sign Up
                             </NavLink>
                         </>
                     )}
