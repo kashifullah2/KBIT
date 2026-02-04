@@ -1,5 +1,6 @@
 from database import engine
 from models import Base
+import models  # imports all models automatically
 
 print("Dropping old tables...")
 Base.metadata.drop_all(bind=engine)

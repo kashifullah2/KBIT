@@ -4,7 +4,7 @@ from sqlalchemy.sql import func
 from database import Base
 
 class User(Base):
-    __tablename__ = "users"
+    __tablename__ = "KBIT_Users"
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
@@ -22,10 +22,10 @@ class CV(Base):
     __tablename__ = "cvs"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    filename = Column(String, nullable=True) # Name of the CV/Resume
-    content = Column(Text, nullable=True)    # JSON string of the CV data
-    original_pdf_path = Column(String, nullable=True) # Path to stored PDF if any
+    user_id = Column(Integer, ForeignKey("KBIT_Users.id"))
+    filename = Column(String, nullable=True)
+    content = Column(Text, nullable=True)
+    original_pdf_path = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
