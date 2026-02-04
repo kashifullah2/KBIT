@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from dotenv import load_dotenv
-
+import datetime
 load_dotenv()
 
 app = FastAPI()
@@ -37,7 +37,7 @@ class RefineRequest(BaseModel):
     instructions: str
 
 # --- NEW: File Upload and Processing Endpoint ---
-from fastapi import UploadFile, File, HTTPException, Form
+from fastapi import UploadFile, File, HTTPException, Form, status
 from typing import List
 import asyncio
 from ocr_service import extract_text_from_image, extract_text_from_pdf
@@ -203,20 +203,6 @@ async def improve_cv_text(request: ImproveRequest):
     result = await chain.ainvoke({"text": request.text})
     return {"improved_text": result.content.strip()}
 
-@app.get("/debug-ocr")
-async def debug_ocr():
-    import shutil
-    import subprocess
-    
-    tesseract_path = shutil.which("tesseract")
-    tesseract_version = "Unknown"
-    
-    if tesseract_path:
-        try:
-            tesseract_version = subprocess.check_output([tesseract_path, "--version"]).decode().split("\n")[0]
-        except Exception as e:
-            tesseract_version = f"Error getting version: {e}"
-
     return {
         "tesseract_path": tesseract_path,
         "tesseract_version": tesseract_version,
@@ -224,3 +210,136 @@ async def debug_ocr():
         "cwd": os.getcwd(),
         "files_in_cwd": os.listdir(".")
     }
+
+# --- AUTH & DB INTEGRATION ---
+from sqlalchemy.orm import Session
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
+from datetime import timedelta
+import models, auth, database
+
+# Create tables
+models.Base.metadata.create_all(bind=database.engine)
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class CVSaveRequest(BaseModel):
+    content: dict
+    filename: str = "My CV"
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+    first_name: str
+    last_name: str
+    phone: str
+    gender: str
+    address: str
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    first_name: str | None = None
+    last_name: str | None = None
+    created_at: datetime.datetime
+
+    class Config:
+        from_attributes = True
+
+@app.post("/signup", response_model=Token)
+async def signup(user: UserCreate, db: Session = Depends(database.get_db)):
+    db_user = auth.get_user(db, email=user.email)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    hashed_password = auth.get_password_hash(user.password)
+    new_user = models.User(
+        email=user.email,
+        hashed_password=hashed_password,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        phone=user.phone,
+        gender=user.gender,
+        address=user.address
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    # Create access token
+    access_token_expires = timedelta(minutes=int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")))
+    access_token = auth.create_access_token(
+        data={"sub": new_user.email}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.post("/token", response_model=Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(database.get_db)):
+    user = db.query(models.User).filter(models.User.email == form_data.username).first()
+    if not user or not auth.verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = auth.create_access_token(
+        data={"sub": user.email}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.get("/users/me")
+async def read_users_me(current_user: models.User = Depends(auth.get_current_user)):
+    return {"email": current_user.email, "id": current_user.id}
+
+# --- CV Persistence Routes ---
+
+@app.post("/cv/save")
+async def save_cv(
+    cv_data: CVSaveRequest, 
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    import json
+    # Check if CV already exists for this user (simple 1 user = 1 CV model for now, or append)
+    # For now, let's just create a new entry every time or update the latest one.
+    # Let's simple check: Update if exists, else create.
+    
+    # We will just append new versions for now to keep history, or you can update.
+    # User requirement: "if user login his cv data... is store... he can do changes"
+    # Strategy: Find latest CV, update it, or create new if none.
+    
+    existing_cv = db.query(models.CV).filter(models.CV.user_id == current_user.id).order_by(models.CV.created_at.desc()).first()
+    
+    content_str = json.dumps(cv_data.content)
+    
+    if existing_cv:
+        existing_cv.content = content_str
+        existing_cv.filename = cv_data.filename
+        existing_cv.updated_at = database.func.now()
+    else:
+        new_cv = models.CV(
+            user_id=current_user.id,
+            filename=cv_data.filename,
+            content=content_str
+        )
+        db.add(new_cv)
+        
+    db.commit()
+    return {"status": "success", "message": "CV saved successfully"}
+
+@app.get("/cv/load")
+async def load_cv(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    import json
+    cv = db.query(models.CV).filter(models.CV.user_id == current_user.id).order_by(models.CV.created_at.desc()).first()
+    
+    if not cv or not cv.content:
+        return {"content": None}
+        
+    return {"content": json.loads(cv.content), "filename": cv.filename}
