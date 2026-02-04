@@ -5,7 +5,7 @@ import { Download, Save, Loader2, Share2 } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { API_BASE_URL } from '../config';
+import { API_URL } from '../config';
 
 import { AuthModal } from '../components/AuthModal.jsx';
 
@@ -41,7 +41,7 @@ export function CVBuilder() {
         if (isAuthenticated) {
             const loadCV = async () => {
                 try {
-                    const response = await axios.get(`${API_BASE_URL}/cv/load`);
+                    const response = await axios.get(`${API_URL}/cv/load`);
                     if (response.data.content) {
                         setCvData(response.data.content);
                     }
@@ -56,7 +56,7 @@ export function CVBuilder() {
     const performSave = async () => {
         setIsSaving(true);
         try {
-            await axios.post(`${API_BASE_URL}/cv/save`, {
+            await axios.post(`${API_URL}/cv/save`, {
                 content: cvData,
                 filename: "My Resume"
             });

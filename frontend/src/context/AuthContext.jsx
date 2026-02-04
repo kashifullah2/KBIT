@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { API_BASE_URL } from '../config';
+import { API_URL } from '../config';
 
 const AuthContext = createContext(null);
 
@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
 
     const fetchUserProfile = async () => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/users/me`);
+            const response = await axios.get(`${API_URL}/users/me`);
             setUser(response.data);
         } catch (error) {
             console.error("Failed to fetch user profile", error);
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
         formData.append('password', password);
 
         try {
-            const response = await axios.post(`${API_BASE_URL}/token`, formData);
+            const response = await axios.post(`${API_URL}/token`, formData);
             setToken(response.data.access_token);
             return true;
         } catch (error) {
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
 
     const signup = async (userData) => {
         try {
-            const response = await axios.post(`${API_BASE_URL}/signup`, userData);
+            const response = await axios.post(`${API_URL}/signup`, userData);
             setToken(response.data.access_token);
             return true;
         } catch (error) {
