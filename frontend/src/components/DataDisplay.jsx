@@ -36,7 +36,7 @@ export function DataDisplay({ data, onRefine, isRefining }) {
     return (
         <div className="w-full max-w-7xl mx-auto space-y-6 pb-20">
             <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-                <div className="p-6 border-b border-indigo-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-indigo-50/50 to-purple-50/50">
+                <div className="p-4 md:p-6 border-b border-indigo-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-indigo-50/50 to-purple-50/50">
                     <div>
                         <h2 className="text-xl font-bold text-slate-800">Extracted Data</h2>
                         <p className="text-sm text-slate-500">

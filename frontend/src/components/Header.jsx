@@ -24,14 +24,14 @@ export function Header() {
                         </h1>
                     </div>
 
-                    <nav className="hidden md:flex items-center gap-1">
+                    <nav className="flex items-center gap-1">
                         <NavLink to="/" end className={navLinkClass}>
                             <FileText className="w-4 h-4" />
-                            Data Extractor
+                            <span className="hidden sm:inline">Data Extractor</span>
                         </NavLink>
                         <NavLink to="/cv-builder" className={navLinkClass}>
                             <LayoutTemplate className="w-4 h-4" />
-                            CV Builder
+                            <span className="hidden sm:inline">CV Builder</span>
                         </NavLink>
                     </nav>
                 </div>

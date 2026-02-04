@@ -38,7 +38,7 @@ export function FileUpload({ onFilesSelected, isUploading }) {
             <div
                 {...getRootProps()}
                 className={cn(
-                    "relative border-2 border-dashed rounded-2xl p-8 transition-all duration-300 ease-in-out cursor-pointer flex flex-col items-center justify-center gap-4 group overflow-hidden shadow-sm hover:shadow-md",
+                    "relative border-2 border-dashed rounded-2xl p-4 md:p-8 transition-all duration-300 ease-in-out cursor-pointer flex flex-col items-center justify-center gap-4 group overflow-hidden shadow-sm hover:shadow-md",
                     isDragActive ? "border-indigo-500 bg-indigo-50/50 scale-[1.01]" : "border-slate-300/60 bg-white/40 hover:border-indigo-400 hover:bg-white/60",
                     isUploading && "opacity-50 pointer-events-none"
                 )}

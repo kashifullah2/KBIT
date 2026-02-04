@@ -84,7 +84,7 @@ export function Extractor() {
     return (
         <div className="space-y-8">
             {/* Hero Section */}
-            <div className="text-center space-y-4 max-w-2xl mx-auto pt-10">
+            <div className="text-center space-y-4 max-w-2xl mx-auto pt-6 md:pt-10 px-4">
                 <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
                     Turn Images and PDFS into <span className="text-indigo-600">Structured Data</span>
                 </h2>
