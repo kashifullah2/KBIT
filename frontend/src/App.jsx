@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Extractor } from './pages/Extractor';
 import { CVBuilder } from './pages/CVBuilder';
+import { IdeaValidator } from './pages/IdeaValidator';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -21,6 +22,7 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Extractor />} />
             <Route path="cv-builder" element={<CVBuilder />} />
+            <Route path="idea-validator" element={<IdeaValidator />} />
             <Route path="login" element={<Login />} />
             <Route path="signup" element={<Signup />} />
           </Route>

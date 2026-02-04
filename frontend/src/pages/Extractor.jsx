@@ -85,10 +85,10 @@ export function Extractor() {
         <div className="space-y-12 pb-20">
             {/* Hero Section */}
             <div className="text-center space-y-6 max-w-4xl mx-auto pt-16 md:pt-24 px-4">
-                <div className="inline-flex items-center rounded-full border border-indigo-100 bg-indigo-50/50 px-3 py-1 text-sm text-indigo-700 backdrop-blur-sm mb-4">
+                {/* <div className="inline-flex items-center rounded-full border border-indigo-100 bg-indigo-50/50 px-3 py-1 text-sm text-indigo-700 backdrop-blur-sm mb-4">
                     <span className="flex h-2 w-2 rounded-full bg-indigo-600 mr-2 animate-pulse"></span>
                     AI-Powered Extraction 2.0
-                </div>
+                </div> */}
 
                 <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-6xl text-balance">
                     Transform Documents into <br />

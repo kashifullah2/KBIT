@@ -57,3 +57,25 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     if user is None:
         raise credentials_exception
     return user
+
+
+# Optional auth - returns None if not authenticated (doesn't raise exception)
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
+
+async def get_current_user_optional(
+    token: Optional[str] = Depends(oauth2_scheme_optional), 
+    db: Session = Depends(get_db)
+) -> Optional[models.User]:
+    """Returns user if authenticated, None otherwise."""
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            return None
+    except JWTError:
+        return None
+        
+    user = db.query(models.User).filter(models.User.email == email).first()
+    return user

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Sparkles, LayoutTemplate, FileText, LogOut } from 'lucide-react';
+import { Sparkles, LayoutTemplate, FileText, LogOut, Lightbulb } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export function Header() {
@@ -33,6 +33,10 @@ export function Header() {
                         <NavLink to="/cv-builder" className={navLinkClass}>
                             <FileText className="w-4 h-4" />
                             CV Builder
+                        </NavLink>
+                        <NavLink to="/idea-validator" className={navLinkClass}>
+                            <Lightbulb className="w-4 h-4" />
+                            Idea Validator
                         </NavLink>
                     </nav>
                 </div>
