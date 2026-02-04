@@ -11,7 +11,7 @@ export const CVPreview = React.forwardRef(({ data, template }, ref) => {
     }[template] || Modern;
 
     return (
-        <div className="bg-white shadow-[0_0_40px_rgba(0,0,0,0.1)]">
+        <div className="bg-white">
             <Template ref={ref} data={data} />
         </div>
     );

@@ -38,23 +38,27 @@ export function FileUpload({ onFilesSelected, isUploading }) {
             <div
                 {...getRootProps()}
                 className={cn(
-                    "relative border-2 border-dashed rounded-2xl p-4 md:p-8 transition-all duration-300 ease-in-out cursor-pointer flex flex-col items-center justify-center gap-4 group overflow-hidden shadow-sm hover:shadow-md",
-                    isDragActive ? "border-indigo-500 bg-indigo-50/50 scale-[1.01]" : "border-slate-300/60 bg-white/40 hover:border-indigo-400 hover:bg-white/60",
-                    isUploading && "opacity-50 pointer-events-none"
+                    "relative border-2 border-dashed rounded-xl p-8 md:p-12 transition-all duration-200 ease-in-out cursor-pointer flex flex-col items-center justify-center gap-4 group",
+                    isDragActive
+                        ? "border-indigo-500 bg-indigo-50/50"
+                        : "border-slate-300 bg-slate-50/50 hover:border-indigo-400 hover:bg-white"
                 )}
             >
                 <input {...getInputProps()} />
+
                 <div className={cn(
-                    "p-4 rounded-full bg-white shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:shadow-md",
-                    isDragActive && "bg-indigo-100 scale-110"
+                    "p-4 rounded-full bg-white shadow-sm ring-1 ring-slate-900/5 transition-all duration-300 group-hover:scale-105 group-hover:shadow-md",
+                    isDragActive && "bg-indigo-100 ring-indigo-500/20"
                 )}>
                     <UploadCloud className={cn("w-8 h-8 text-slate-400 transition-colors duration-300 group-hover:text-indigo-600", isDragActive && "text-indigo-600")} />
                 </div>
-                <div className="text-center space-y-1">
-                    <h3 className="text-lg font-semibold text-slate-700 group-hover:text-indigo-700 transition-colors">
-                        {isDragActive ? "Drop files here" : "Click or Drag to Select Files"}
+                <div className="text-center space-y-2">
+                    <h3 className="text-lg font-semibold text-slate-900 group-hover:text-indigo-700 transition-colors">
+                        {isDragActive ? "Drop files now" : "Select files to process"}
                     </h3>
-                    <p className="text-xs text-slate-500">Supported: PDF, JPG, PNG</p>
+                    <p className="text-sm text-slate-500 max-w-sm mx-auto">
+                        Support for PDF, JPG, and PNG documents.
+                    </p>
                 </div>
             </div>
 

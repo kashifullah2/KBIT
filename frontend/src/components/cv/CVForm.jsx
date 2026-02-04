@@ -6,29 +6,36 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { API_URL } from '../../config';
 
 const Section = ({ title, isOpen, onToggle, children }) => (
-    <div className="border border-slate-200 rounded-xl overflow-hidden mb-4 bg-white shadow-sm">
+    <motion.div
+        layout
+        className={`border transition-all duration-300 rounded-xl overflow-hidden mb-4 ${isOpen ? 'bg-white shadow-lg shadow-slate-200/50 border-indigo-100 ring-1 ring-indigo-500/10' : 'bg-white shadow-sm border-slate-200 hover:border-indigo-200 hover:shadow-md'}`}
+    >
         <button
             onClick={onToggle}
-            className="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 transition-colors"
+            className="w-full flex items-center justify-between p-4 bg-transparent outline-none group"
         >
-            <span className="font-semibold text-slate-700">{title}</span>
-            {isOpen ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+            <span className={`font-semibold text-sm transition-colors ${isOpen ? 'text-indigo-900' : 'text-slate-700 group-hover:text-indigo-600'}`}>
+                {title}
+            </span>
+            <div className={`p-1.5 rounded-full transition-all duration-300 ${isOpen ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-50 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-500'}`}>
+                {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </div>
         </button>
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    initial={{ height: 0 }}
-                    animate={{ height: 'auto' }}
-                    exit={{ height: 0 }}
-                    className="overflow-hidden"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: [0.04, 0.62, 0.23, 0.98] }}
                 >
-                    <div className="p-4 space-y-4 border-t border-slate-100">
+                    <div className="p-5 pt-0 space-y-5">
                         {children}
                     </div>
                 </motion.div>
             )}
         </AnimatePresence>
-    </div>
+    </motion.div>
 );
 
 const InputGroup = ({ label, value, onChange, placeholder, type = "text", className, aiEnabled, onImprove }) => {
@@ -45,16 +52,16 @@ const InputGroup = ({ label, value, onChange, placeholder, type = "text", classN
 
     return (
         <div className={cn("space-y-1.5", className)}>
-            <div className="flex justify-between">
-                <label className="text-sm font-medium text-slate-700">{label}</label>
+            <div className="flex justify-between items-center">
+                <label className="text-[13px] font-medium text-slate-700 tracking-wide">{label}</label>
                 {aiEnabled && (
                     <button
                         onClick={handleImproveClick}
                         disabled={isImproving || !value}
-                        className="text-xs flex items-center gap-1 text-indigo-600 hover:text-indigo-700 font-medium disabled:opacity-50"
+                        className="text-[11px] bg-indigo-50 px-2 py-0.5 rounded-full flex items-center gap-1 text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 font-medium disabled:opacity-50 transition-colors"
                     >
                         <Wand2 className={cn("w-3 h-3", isImproving && "animate-spin")} />
-                        {isImproving ? "Improving..." : "Improve"}
+                        {isImproving ? "Improving" : "AI Rewrite"}
                     </button>
                 )}
             </div>
@@ -64,7 +71,7 @@ const InputGroup = ({ label, value, onChange, placeholder, type = "text", classN
                     onChange={e => onChange(e.target.value)}
                     placeholder={placeholder}
                     rows={4}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
+                    className="w-full px-4 py-3 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all resize-none placeholder:text-slate-400"
                 />
             ) : (
                 <input
@@ -72,7 +79,7 @@ const InputGroup = ({ label, value, onChange, placeholder, type = "text", classN
                     value={value}
                     onChange={e => onChange(e.target.value)}
                     placeholder={placeholder}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    className="w-full px-4 py-2.5 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all placeholder:text-slate-400"
                 />
             )}
         </div>
@@ -86,7 +93,7 @@ export function CVForm({ data, onUpdate }) {
 
     const handleImprove = async (text, callback) => {
         try {
-            const res = await fetch(`${ API_URL } /cv/improve`, {
+            const res = await fetch(`${API_URL} /cv/improve`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text, section: 'general' })
@@ -239,8 +246,8 @@ export function CVForm({ data, onUpdate }) {
                 <Section
                     key={sectionIndex}
                     title={section.title || "Custom Section"}
-                    isOpen={openSection === `custom - ${ sectionIndex } `}
-                    onToggle={() => toggleSection(`custom - ${ sectionIndex } `)}
+                    isOpen={openSection === `custom - ${sectionIndex} `}
+                    onToggle={() => toggleSection(`custom - ${sectionIndex} `)}
                 >
                     <div className="mb-4 flex items-center gap-2">
                         <input

@@ -82,14 +82,26 @@ export function Extractor() {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-12 pb-20">
             {/* Hero Section */}
-            <div className="text-center space-y-4 max-w-2xl mx-auto pt-6 md:pt-10 px-4">
-                <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
-                    Turn Images and PDFS into <span className="text-indigo-600">Structured Data</span>
+            <div className="text-center space-y-6 max-w-4xl mx-auto pt-16 md:pt-24 px-4">
+                <div className="inline-flex items-center rounded-full border border-indigo-100 bg-indigo-50/50 px-3 py-1 text-sm text-indigo-700 backdrop-blur-sm mb-4">
+                    <span className="flex h-2 w-2 rounded-full bg-indigo-600 mr-2 animate-pulse"></span>
+                    AI-Powered Extraction 2.0
+                </div>
+
+                <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-6xl text-balance">
+                    Transform Documents into <br />
+                    <span className="text-indigo-600 relative inline-block">
+                        Structured Data
+                        <svg className="absolute -bottom-2 left-0 w-full h-2 text-indigo-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
+                            <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="4" fill="none" />
+                        </svg>
+                    </span>
                 </h2>
-                <p className="text-lg text-slate-500">
-                    Upload receipts, invoices, or forms. Our AI extracts the data you need in seconds.
+
+                <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed text-balance">
+                    Stop manual entry. Upload receipts, invoices, or forms and get <span className="font-semibold text-slate-900">pixel-perfect JSON</span> in seconds.
                 </p>
             </div>
 
