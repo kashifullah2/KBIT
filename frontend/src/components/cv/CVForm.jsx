@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Plus, Trash2, Wand2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, Trash2, Wand2, Camera, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -132,6 +132,51 @@ export function CVForm({ data, onUpdate }) {
         <div className="pb-10">
             {/* Personal Info */}
             <Section title="Personal Information" isOpen={openSection === 'personal'} onToggle={() => toggleSection('personal')}>
+                {/* Photo Upload */}
+                <div className="flex items-start gap-4 mb-4">
+                    <div className="relative">
+                        {data.personal.photo ? (
+                            <div className="relative">
+                                <img
+                                    src={data.personal.photo}
+                                    alt="Profile"
+                                    className="w-24 h-24 rounded-xl object-cover border-2 border-slate-200 shadow-sm"
+                                />
+                                <button
+                                    onClick={() => updatePersonal('photo', '')}
+                                    className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-md"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            </div>
+                        ) : (
+                            <label className="w-24 h-24 rounded-xl border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-slate-50 hover:bg-indigo-50 flex flex-col items-center justify-center cursor-pointer transition-all group">
+                                <Camera className="w-6 h-6 text-slate-400 group-hover:text-indigo-500 transition-colors" />
+                                <span className="text-[10px] text-slate-400 group-hover:text-indigo-500 mt-1">Add Photo</span>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (file) {
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => {
+                                                updatePersonal('photo', reader.result);
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }
+                                    }}
+                                />
+                            </label>
+                        )}
+                    </div>
+                    <div className="flex-1 text-xs text-slate-500">
+                        <p className="font-medium text-slate-700 mb-1">Profile Photo (Optional)</p>
+                        <p>Upload a professional headshot. This will appear on Creative and Executive templates.</p>
+                    </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <InputGroup label="Full Name" value={data.personal.fullName} onChange={v => updatePersonal('fullName', v)} placeholder="John Doe" />
                     <InputGroup label="Job Title" value={data.personal.jobTitle || ''} onChange={v => updatePersonal('jobTitle', v)} placeholder="Software Engineer" />

@@ -16,13 +16,21 @@ export const Creative = React.forwardRef(({ data, customization = {} }, ref) => 
                 className="w-[75mm] min-h-full text-white p-6 flex flex-col print:print-color-adjust-exact"
                 style={{ backgroundColor: '#1e293b' }}
             >
-                {/* Profile Avatar */}
-                <div
-                    className="w-28 h-28 rounded-full mx-auto flex items-center justify-center text-4xl font-bold text-white shadow-xl mb-4 border-4 border-white/20"
-                    style={{ backgroundColor: primaryColor }}
-                >
-                    {data.personal.fullName ? data.personal.fullName.charAt(0).toUpperCase() : 'U'}
-                </div>
+                {/* Profile Photo or Avatar */}
+                {data.personal.photo ? (
+                    <img
+                        src={data.personal.photo}
+                        alt={data.personal.fullName || 'Profile'}
+                        className="w-28 h-28 rounded-full mx-auto object-cover shadow-xl mb-4 border-4 border-white/20"
+                    />
+                ) : (
+                    <div
+                        className="w-28 h-28 rounded-full mx-auto flex items-center justify-center text-4xl font-bold text-white shadow-xl mb-4 border-4 border-white/20"
+                        style={{ backgroundColor: primaryColor }}
+                    >
+                        {data.personal.fullName ? data.personal.fullName.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                )}
 
                 {/* Name (Mobile-friendly in sidebar) */}
                 <div className="text-center mb-6">

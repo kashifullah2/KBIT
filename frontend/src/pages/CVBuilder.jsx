@@ -50,6 +50,7 @@ export function CVBuilder() {
             address: "San Francisco, CA",
             linkedin: "linkedin.com/in/johndoe",
             website: "johndoe.dev",
+            photo: "",
             summary: "Results-driven Senior Software Engineer with 8+ years of experience building scalable web applications and leading cross-functional teams. Expertise in React, Node.js, and cloud technologies. Passionate about clean code, agile methodologies, and mentoring junior developers. Successfully delivered 20+ projects that improved user engagement by 40%."
         },
         experience: [

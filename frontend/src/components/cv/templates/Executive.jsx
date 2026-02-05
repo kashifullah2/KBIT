@@ -20,20 +20,32 @@ export const Executive = React.forwardRef(({ data, customization = {} }, ref) =>
 
             {/* Header Section */}
             <div className="px-10 pt-8 pb-6">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <h1
-                            className="text-4xl font-bold tracking-tight mb-1"
-                            style={{ color: primaryColor }}
-                        >
-                            {personal.fullName || 'Your Name'}
-                        </h1>
-                        <p className="text-xl text-slate-600 font-medium">
-                            {personal.jobTitle || 'Professional Title'}
-                        </p>
+                <div className="flex justify-between items-start gap-6">
+                    {/* Left: Photo + Name */}
+                    <div className="flex items-center gap-5">
+                        {personal.photo && (
+                            <img
+                                src={personal.photo}
+                                alt={personal.fullName || 'Profile'}
+                                className="w-20 h-20 rounded-xl object-cover shadow-lg border-2"
+                                style={{ borderColor: primaryColor }}
+                            />
+                        )}
+                        <div>
+                            <h1
+                                className="text-4xl font-bold tracking-tight mb-1"
+                                style={{ color: primaryColor }}
+                            >
+                                {personal.fullName || 'Your Name'}
+                            </h1>
+                            <p className="text-xl text-slate-600 font-medium">
+                                {personal.jobTitle || 'Professional Title'}
+                            </p>
+                        </div>
                     </div>
+
                     {/* Contact Info - Right Side */}
-                    <div className="text-right space-y-1 text-sm text-slate-600">
+                    <div className="text-right space-y-1 text-sm text-slate-600 shrink-0">
                         {personal.email && (
                             <div className="flex items-center justify-end gap-2">
                                 <span>{personal.email}</span>
