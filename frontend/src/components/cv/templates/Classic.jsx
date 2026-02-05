@@ -31,7 +31,7 @@ export const Classic = React.forwardRef(({ data }, ref) => {
             )}
 
             {/* Experience */}
-            {experience.length > 0 && (
+            {experience && experience.length > 0 && (
                 <section className="mb-6">
                     <h2 className="text-lg font-bold border-b border-slate-300 mb-3 pb-1 uppercase tracking-wide">Experience</h2>
                     <div className="space-y-4">
@@ -54,7 +54,7 @@ export const Classic = React.forwardRef(({ data }, ref) => {
             )}
 
             {/* Education */}
-            {education.length > 0 && (
+            {education && education.length > 0 && (
                 <section className="mb-6">
                     <h2 className="text-lg font-bold border-b border-slate-300 mb-3 pb-1 uppercase tracking-wide">Education</h2>
                     <div className="space-y-3">
@@ -72,7 +72,7 @@ export const Classic = React.forwardRef(({ data }, ref) => {
             )}
 
             {/* Skills */}
-            {skills.length > 0 && skills.some(s => s.trim()) && (
+            {skills && skills.length > 0 && skills.some(s => s.trim()) && (
                 <section className="mb-6 break-inside-avoid">
                     <h2 className="text-lg font-bold border-b border-slate-300 mb-3 pb-1 uppercase tracking-wide">Skills</h2>
                     <div className="text-sm text-slate-800 leading-relaxed">
