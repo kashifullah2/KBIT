@@ -93,7 +93,7 @@ export function CVForm({ data, onUpdate }) {
 
     const handleImprove = async (text, callback) => {
         try {
-            const res = await fetch(`${API_URL} /cv/improve`, {
+            const res = await fetch(`${API_URL}/cv/improve`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text, section: 'general' })
