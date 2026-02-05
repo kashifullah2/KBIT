@@ -1,0 +1,15 @@
+# KBIT - AI-Powered Platform
+# https://kbit.app
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://kbit.app/sitemap.xml
+
+# Crawl-delay (optional, for polite crawling)
+Crawl-delay: 1
+
+# Disallow admin/private paths
+Disallow: /api/
+Disallow: /admin/

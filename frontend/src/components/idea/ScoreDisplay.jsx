@@ -43,7 +43,7 @@ export function ScoreDisplay({ score, size = 'large' }) {
                 <div className="relative w-28 h-28">
                     <svg className="w-28 h-28 transform -rotate-90">
                         <circle
-                            cx="56"
+                            cx="256"
                             cy="56"
                             r="48"
                             stroke="currentColor"
