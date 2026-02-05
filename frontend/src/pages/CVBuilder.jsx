@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CVForm } from '../components/cv/CVForm.jsx';
 import { CVPreview } from '../components/cv/CVPreview.jsx';
-import { Download, Save, Loader2, Palette, Type, ChevronDown } from 'lucide-react';
+import { Download, Save, Loader2, Palette, Type, ChevronDown, Trash2 } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
@@ -12,14 +12,20 @@ import { AuthModal } from '../components/AuthModal.jsx';
 // Color and Font Options
 const COLOR_OPTIONS = [
     { name: 'Slate', value: '#334155' },
+    { name: 'Gray', value: '#6b7280' },
     { name: 'Red', value: '#dc2626' },
     { name: 'Orange', value: '#ea580c' },
+    { name: 'Amber', value: '#d97706' },
+    { name: 'Yellow', value: '#ca8a04' },
+    { name: 'Lime', value: '#65a30d' },
     { name: 'Green', value: '#16a34a' },
+    { name: 'Teal', value: '#0d9488' },
+    { name: 'Cyan', value: '#0891b2' },
     { name: 'Blue', value: '#2563eb' },
     { name: 'Indigo', value: '#4f46e5' },
     { name: 'Purple', value: '#9333ea' },
     { name: 'Pink', value: '#db2777' },
-    { name: 'Teal', value: '#0d9488' },
+    { name: 'Rose', value: '#e11d48' },
 ];
 
 const FONT_OPTIONS = [
@@ -280,17 +286,42 @@ export function CVBuilder() {
 
                             <div className="hidden sm:block h-6 w-px bg-slate-200" />
 
-                            {/* Color Picker - Inline Style */}
-                            <div className="flex items-center gap-1">
-                                {COLOR_OPTIONS.map((color) => (
-                                    <button
-                                        key={color.value}
-                                        onClick={() => setPrimaryColor(color.value)}
-                                        className={`w-6 h-6 rounded-full transition-all hover:scale-110 ${primaryColor === color.value ? 'ring-2 ring-offset-1 ring-slate-400 scale-110' : 'hover:ring-1 hover:ring-slate-300'}`}
-                                        style={{ backgroundColor: color.value }}
-                                        title={color.name}
+                            {/* Color Picker - Dropdown Box */}
+                            <div className="relative" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                    onClick={() => {
+                                        setShowColorPicker(!showColorPicker);
+                                        setShowFontPicker(false);
+                                    }}
+                                    className="flex items-center gap-1.5 px-2.5 py-1.5 text-slate-600 hover:text-indigo-600 bg-slate-100 sm:bg-transparent hover:bg-indigo-50 rounded-lg transition-colors"
+                                    title="Change Color"
+                                >
+                                    <Palette className="w-4 h-4" />
+                                    <div
+                                        className="w-4 h-4 rounded border-2 border-white shadow-sm"
+                                        style={{ backgroundColor: primaryColor }}
                                     />
-                                ))}
+                                    <ChevronDown className="w-3 h-3" />
+                                </button>
+                                {showColorPicker && (
+                                    <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-2xl border border-slate-200 p-4 z-50 min-w-[200px]">
+                                        <p className="text-xs font-semibold text-slate-700 mb-3">Choose Accent Color</p>
+                                        <div className="grid grid-cols-5 gap-2">
+                                            {COLOR_OPTIONS.map((color) => (
+                                                <button
+                                                    key={color.value}
+                                                    onClick={() => {
+                                                        setPrimaryColor(color.value);
+                                                        setShowColorPicker(false);
+                                                    }}
+                                                    className={`w-8 h-8 rounded-lg transition-all hover:scale-110 ${primaryColor === color.value ? 'ring-2 ring-offset-2 ring-indigo-500 scale-110' : 'hover:shadow-md'}`}
+                                                    style={{ backgroundColor: color.value }}
+                                                    title={color.name}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Font Picker */}
@@ -329,6 +360,25 @@ export function CVBuilder() {
                             <div className="hidden sm:block h-6 w-px bg-slate-200" />
 
                             {/* Action Buttons */}
+                            <button
+                                onClick={() => {
+                                    if (window.confirm('Are you sure you want to clear all CV data?')) {
+                                        setCvData({
+                                            personal: { fullName: '', jobTitle: '', email: '', phone: '', address: '', linkedin: '', website: '', summary: '' },
+                                            experience: [],
+                                            education: [],
+                                            skills: [],
+                                            projects: [],
+                                            customSections: []
+                                        });
+                                    }
+                                }}
+                                className="p-2 text-slate-500 hover:text-red-600 bg-slate-100 sm:bg-transparent hover:bg-red-50 rounded-lg transition-colors"
+                                title="Clear All"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+
                             <button
                                 onClick={handleSave}
                                 disabled={isSaving}
