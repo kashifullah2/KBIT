@@ -87,6 +87,16 @@ Provide a detailed analysis in the following JSON structure. Be specific, action
         "long_term": "18+ months vision",
         "key_metrics": ["Metric 1", "Metric 2"]
     }},
+    "execution_plan": [
+        {{
+            "phase": "Phase Name (e.g., Month 1-2)",
+            "steps": ["Step 1", "Step 2", "Step 3"]
+        }},
+        {{
+            "phase": "Phase Name (e.g., Month 3-4)",
+            "steps": ["Step 1", "Step 2", "Step 3"]
+        }}
+    ],
     "viability_score": 1-10,
     "score_breakdown": {{
         "market_opportunity": 1-10,

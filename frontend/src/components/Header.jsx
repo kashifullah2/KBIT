@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Sparkles, LayoutTemplate, FileText, LogOut, Lightbulb, Menu, X } from 'lucide-react';
+import { Sparkles, LayoutTemplate, FileText, LogOut, Lightbulb, Menu, X, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export function Header() {
@@ -46,6 +46,10 @@ export function Header() {
                         <NavLink to="/idea-validator" className={navLinkClass}>
                             <Lightbulb className="w-4 h-4" />
                             Idea Validator
+                        </NavLink>
+                        <NavLink to="/monetizer" className={navLinkClass}>
+                            <TrendingUp className="w-4 h-4" />
+                            Monetizer
                         </NavLink>
                     </nav>
 
@@ -107,6 +111,10 @@ export function Header() {
                         <NavLink to="/idea-validator" className={mobileNavLinkClass} onClick={() => setMobileMenuOpen(false)}>
                             <Lightbulb className="w-5 h-5" />
                             Idea Validator
+                        </NavLink>
+                        <NavLink to="/monetizer" className={mobileNavLinkClass} onClick={() => setMobileMenuOpen(false)}>
+                            <TrendingUp className="w-5 h-5" />
+                            Monetizer
                         </NavLink>
                     </nav>
 

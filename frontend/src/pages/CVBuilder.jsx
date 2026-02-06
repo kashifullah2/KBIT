@@ -28,6 +28,19 @@ const COLOR_OPTIONS = [
     { name: 'Rose', value: '#e11d48' },
 ];
 
+const SIDEBAR_COLOR_OPTIONS = [
+    { name: 'Dark Slate', value: '#1e293b' },
+    { name: 'Charcoal', value: '#2d3748' },
+    { name: 'Navy', value: '#1e3a8a' },
+    { name: 'Forest', value: '#14532d' },
+    { name: 'Burgundy', value: '#7f1d1d' },
+    { name: 'Eggplant', value: '#581c87' },
+    { name: 'Teal Dark', value: '#134e4a' },
+    { name: 'Light Gray', value: '#f1f5f9' },
+    { name: 'Cream', value: '#fef3c7' },
+    { name: 'Ice Blue', value: '#dbeafe' },
+];
+
 const FONT_OPTIONS = [
     { name: 'Inter', value: "'Inter', sans-serif" },
     { name: 'Roboto', value: "'Roboto', sans-serif" },
@@ -125,8 +138,10 @@ export function CVBuilder() {
 
     // Customization state
     const [primaryColor, setPrimaryColor] = useState('#4f46e5');
+    const [sidebarColor, setSidebarColor] = useState('#1e293b');
     const [fontFamily, setFontFamily] = useState("'Inter', sans-serif");
     const [showColorPicker, setShowColorPicker] = useState(false);
+    const [showSidebarColorPicker, setShowSidebarColorPicker] = useState(false);
     const [showFontPicker, setShowFontPicker] = useState(false);
 
     // Load Data only if authenticated
@@ -150,6 +165,7 @@ export function CVBuilder() {
     useEffect(() => {
         const handleClickOutside = () => {
             setShowColorPicker(false);
+            setShowSidebarColorPicker(false);
             setShowFontPicker(false);
         };
         document.addEventListener('click', handleClickOutside);
@@ -221,6 +237,7 @@ export function CVBuilder() {
 
     const customization = {
         primaryColor,
+        sidebarColor,
         fontFamily
     };
 
@@ -272,7 +289,7 @@ export function CVBuilder() {
                         <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 flex-wrap sm:flex-nowrap justify-center">
                             {/* Template Selector */}
                             <div className="flex items-center bg-slate-100 rounded-lg p-0.5 sm:p-1">
-                                {['modern', 'classic', 'creative', 'executive'].map((t) => (
+                                {['modern', 'classic', 'creative', 'executive', 'professional', 'minimal'].map((t) => (
                                     <button
                                         key={t}
                                         onClick={() => setActiveTemplate(t)}
@@ -287,15 +304,16 @@ export function CVBuilder() {
 
                             <div className="hidden sm:block h-6 w-px bg-slate-200" />
 
-                            {/* Color Picker - Dropdown Box */}
+                            {/* Accent Color Picker */}
                             <div className="relative" onClick={(e) => e.stopPropagation()}>
                                 <button
                                     onClick={() => {
                                         setShowColorPicker(!showColorPicker);
+                                        setShowSidebarColorPicker(false);
                                         setShowFontPicker(false);
                                     }}
                                     className="flex items-center gap-1.5 px-2.5 py-1.5 text-slate-600 hover:text-indigo-600 bg-slate-100 sm:bg-transparent hover:bg-indigo-50 rounded-lg transition-colors"
-                                    title="Change Color"
+                                    title="Accent Color"
                                 >
                                     <Palette className="w-4 h-4" />
                                     <div
@@ -306,7 +324,7 @@ export function CVBuilder() {
                                 </button>
                                 {showColorPicker && (
                                     <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-2xl border border-slate-200 p-4 z-50 min-w-[200px]">
-                                        <p className="text-xs font-semibold text-slate-700 mb-3">Choose Accent Color</p>
+                                        <p className="text-xs font-semibold text-slate-700 mb-3">Accent Color</p>
                                         <div className="grid grid-cols-5 gap-2">
                                             {COLOR_OPTIONS.map((color) => (
                                                 <button
@@ -325,12 +343,50 @@ export function CVBuilder() {
                                 )}
                             </div>
 
+                            {/* Sidebar Color Picker (for Creative and Modern templates) */}
+                            {(activeTemplate === 'creative' || activeTemplate === 'modern') && (
+                                <div className="relative" onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                        onClick={() => {
+                                            setShowSidebarColorPicker(!showSidebarColorPicker);
+                                            setShowColorPicker(false);
+                                            setShowFontPicker(false);
+                                        }}
+                                        className="flex items-center gap-1.5 px-2.5 py-1.5 text-slate-600 hover:text-indigo-600 bg-slate-100 sm:bg-transparent hover:bg-indigo-50 rounded-lg transition-colors"
+                                        title="Sidebar Color"
+                                    >
+                                        <div className="w-4 h-4 rounded-l-lg border-2 border-white shadow-sm" style={{ backgroundColor: sidebarColor }} />
+                                        <ChevronDown className="w-3 h-3" />
+                                    </button>
+                                    {showSidebarColorPicker && (
+                                        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-2xl border border-slate-200 p-4 z-50 min-w-[200px]">
+                                            <p className="text-xs font-semibold text-slate-700 mb-3">Sidebar Color</p>
+                                            <div className="grid grid-cols-5 gap-2">
+                                                {SIDEBAR_COLOR_OPTIONS.map((color) => (
+                                                    <button
+                                                        key={color.value}
+                                                        onClick={() => {
+                                                            setSidebarColor(color.value);
+                                                            setShowSidebarColorPicker(false);
+                                                        }}
+                                                        className={`w-8 h-8 rounded-lg transition-all hover:scale-110 ${sidebarColor === color.value ? 'ring-2 ring-offset-2 ring-indigo-500 scale-110' : 'hover:shadow-md'}`}
+                                                        style={{ backgroundColor: color.value }}
+                                                        title={color.name}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
                             {/* Font Picker */}
                             <div className="relative" onClick={(e) => e.stopPropagation()}>
                                 <button
                                     onClick={() => {
                                         setShowFontPicker(!showFontPicker);
                                         setShowColorPicker(false);
+                                        setShowSidebarColorPicker(false);
                                     }}
                                     className="flex items-center gap-1 px-2.5 py-1.5 text-slate-600 hover:text-indigo-600 bg-slate-100 sm:bg-transparent hover:bg-indigo-50 rounded-lg transition-colors"
                                     title="Change Font"

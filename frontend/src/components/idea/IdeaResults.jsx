@@ -13,7 +13,8 @@ import {
     AlertTriangle,
     CheckCircle,
     Lightbulb,
-    Award
+    Award,
+    ClipboardList
 } from 'lucide-react';
 import { ScoreDisplay, ScoreBreakdown } from './ScoreDisplay';
 
@@ -288,6 +289,34 @@ export function IdeaResults({ analysis }) {
                                 <h4 className="text-sm font-semibold text-indigo-700 mb-1">Recommended Tech Stack</h4>
                                 <p className="text-indigo-600 text-sm">{analysis.mvp_recommendation.tech_stack}</p>
                             </div>
+                        )}
+                    </div>
+                </ExpandableSection>
+
+                {/* Execution Plan */}
+                <ExpandableSection title="Execution Plan" icon={ClipboardList} accentColor="rose">
+                    <div className="space-y-6">
+                        {analysis.execution_plan ? (
+                            analysis.execution_plan.map((phase, i) => (
+                                <div key={i} className="relative pl-6 border-l-2 border-rose-200 last:border-0 pb-6 last:pb-0">
+                                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-rose-100 border-2 border-rose-500"></div>
+                                    <h4 className="font-bold text-slate-900 mb-3">{phase.phase}</h4>
+                                    <ul className="space-y-3">
+                                        {phase.steps.map((step, j) => (
+                                            <li key={j} className="flex items-start gap-3 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                                <div className="bg-white rounded-full p-1 shadow-sm mt-0.5">
+                                                    <span className="flex items-center justify-center w-5 h-5 text-xs font-bold text-rose-600">
+                                                        {j + 1}
+                                                    </span>
+                                                </div>
+                                                <span className="text-slate-700 text-sm">{step}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-slate-500 italic">No execution plan available for this idea.</p>
                         )}
                     </div>
                 </ExpandableSection>

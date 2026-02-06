@@ -1,16 +1,18 @@
 import React from 'react';
 
-export const Classic = React.forwardRef(({ data }, ref) => {
+export const Classic = React.forwardRef(({ data, customization = {} }, ref) => {
     const { personal, experience, education, skills, customSections } = data;
+    const primaryColor = customization.primaryColor || '#1e293b';
+    const fontFamily = customization.fontFamily || "'Playfair Display', serif";
 
     return (
-        <div ref={ref} className="w-[210mm] min-h-[297mm] bg-white text-slate-900 p-12 shadow-lg mx-auto font-serif print-p-0">
+        <div ref={ref} className="w-[210mm] min-h-[297mm] bg-white text-slate-900 p-12 shadow-lg mx-auto print-p-0" style={{ fontFamily }}>
             {/* Header */}
-            <header className="border-b border-slate-300 pb-4 mb-6 text-center break-inside-avoid">
+            <header className="border-b pb-4 mb-6 text-center break-inside-avoid" style={{ borderColor: primaryColor }}>
                 <h1 className="text-3xl font-bold text-slate-900 mb-1">
                     {personal.fullName || 'Your Name'}
                 </h1>
-                <p className="text-lg text-slate-700 italic mb-2">{personal.jobTitle || 'Professional Title'}</p>
+                <p className="text-lg italic mb-2" style={{ color: primaryColor }}>{personal.jobTitle || 'Professional Title'}</p>
 
                 <div className="flex flex-wrap justify-center gap-3 text-sm text-slate-600">
                     {personal.email && <span>{personal.email}</span>}
@@ -23,7 +25,7 @@ export const Classic = React.forwardRef(({ data }, ref) => {
             {/* Summary */}
             {personal.summary && (
                 <section className="mb-6 break-inside-avoid">
-                    <h2 className="text-lg font-bold border-b border-slate-300 mb-2 pb-1 uppercase tracking-wide">Professional Summary</h2>
+                    <h2 className="text-lg font-bold border-b mb-2 pb-1 uppercase tracking-wide" style={{ borderColor: primaryColor, color: primaryColor }}>Professional Summary</h2>
                     <p className="text-slate-800 leading-relaxed text-sm">
                         {personal.summary}
                     </p>
@@ -33,7 +35,7 @@ export const Classic = React.forwardRef(({ data }, ref) => {
             {/* Experience */}
             {experience && experience.length > 0 && (
                 <section className="mb-6">
-                    <h2 className="text-lg font-bold border-b border-slate-300 mb-3 pb-1 uppercase tracking-wide">Experience</h2>
+                    <h2 className="text-lg font-bold border-b mb-3 pb-1 uppercase tracking-wide" style={{ borderColor: primaryColor, color: primaryColor }}>Experience</h2>
                     <div className="space-y-4">
                         {experience.map((exp, index) => (
                             <div key={index} className="break-inside-avoid">
@@ -56,7 +58,7 @@ export const Classic = React.forwardRef(({ data }, ref) => {
             {/* Education */}
             {education && education.length > 0 && (
                 <section className="mb-6">
-                    <h2 className="text-lg font-bold border-b border-slate-300 mb-3 pb-1 uppercase tracking-wide">Education</h2>
+                    <h2 className="text-lg font-bold border-b mb-3 pb-1 uppercase tracking-wide" style={{ borderColor: primaryColor, color: primaryColor }}>Education</h2>
                     <div className="space-y-3">
                         {education.map((edu, index) => (
                             <div key={index} className="break-inside-avoid">
@@ -74,7 +76,7 @@ export const Classic = React.forwardRef(({ data }, ref) => {
             {/* Skills */}
             {skills && skills.length > 0 && skills.some(s => s.trim()) && (
                 <section className="mb-6 break-inside-avoid">
-                    <h2 className="text-lg font-bold border-b border-slate-300 mb-3 pb-1 uppercase tracking-wide">Skills</h2>
+                    <h2 className="text-lg font-bold border-b mb-3 pb-1 uppercase tracking-wide" style={{ borderColor: primaryColor, color: primaryColor }}>Skills</h2>
                     <div className="text-sm text-slate-800 leading-relaxed">
                         {skills.filter(s => s.trim()).join(' • ')}
                     </div>
@@ -84,7 +86,7 @@ export const Classic = React.forwardRef(({ data }, ref) => {
             {/* Custom Sections */}
             {customSections && customSections.map((section, index) => (
                 <section key={index} className="mb-6">
-                    <h2 className="text-lg font-bold border-b border-slate-300 mb-3 pb-1 uppercase tracking-wide">{section.title}</h2>
+                    <h2 className="text-lg font-bold border-b mb-3 pb-1 uppercase tracking-wide" style={{ borderColor: primaryColor, color: primaryColor }}>{section.title}</h2>
                     <div className="space-y-3">
                         {section.items.map((item, idx) => (
                             <div key={idx} className="break-inside-avoid">

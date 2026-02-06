@@ -122,6 +122,29 @@ function generateMarkdown(title, analysis) {
     }
     md += `\n`;
 
+    md += `## Execution Plan\n`;
+    if (analysis.execution_plan) {
+        analysis.execution_plan.forEach(phase => {
+            md += `### ${phase.phase}\n`;
+            phase.steps.forEach((step, i) => {
+                md += `${i + 1}. ${step}\n`;
+            });
+            md += `\n`;
+        });
+    }
+    md += `\n`;
+
+    md += `## Growth Strategy\n`;
+    if (analysis.growth_strategy) {
+        md += `**Short Term:** ${analysis.growth_strategy.short_term || 'N/A'}\n`;
+        md += `**Medium Term:** ${analysis.growth_strategy.medium_term || 'N/A'}\n`;
+        md += `**Long Term:** ${analysis.growth_strategy.long_term || 'N/A'}\n`;
+        if (analysis.growth_strategy.key_metrics) {
+            md += `**Key Metrics:** ${analysis.growth_strategy.key_metrics.join(', ')}\n`;
+        }
+    }
+    md += `\n`;
+
     md += `## Verdict\n`;
     md += `${analysis.verdict || ''}\n\n`;
 

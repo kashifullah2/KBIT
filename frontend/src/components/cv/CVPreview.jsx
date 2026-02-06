@@ -3,13 +3,17 @@ import { Modern } from './templates/Modern';
 import { Classic } from './templates/Classic';
 import { Creative } from './templates/Creative';
 import { Executive } from './templates/Executive';
+import { Professional } from './templates/Professional';
+import { Minimal } from './templates/Minimal';
 
 export const CVPreview = React.forwardRef(({ data, template, customization = {} }, ref) => {
     const Template = {
         classic: Classic,
         modern: Modern,
         creative: Creative,
-        executive: Executive
+        executive: Executive,
+        professional: Professional,
+        minimal: Minimal
     }[template] || Modern;
 
     return (

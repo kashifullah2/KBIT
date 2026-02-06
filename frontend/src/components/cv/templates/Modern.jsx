@@ -4,6 +4,7 @@ import { Mail, Phone, MapPin, Linkedin, Globe, Briefcase, GraduationCap, Star } 
 export const Modern = React.forwardRef(({ data, customization = {} }, ref) => {
     const { personal, experience, education, skills, customSections } = data;
     const primaryColor = customization.primaryColor || '#4f46e5';
+    const sidebarColor = customization.sidebarColor || primaryColor;
     const fontFamily = customization.fontFamily || "'Inter', sans-serif";
 
     return (
@@ -142,7 +143,7 @@ export const Modern = React.forwardRef(({ data, customization = {} }, ref) => {
                         {skills && skills.length > 0 && skills.some(s => s.trim()) && (
                             <section
                                 className="p-4 rounded-xl"
-                                style={{ backgroundColor: `${primaryColor}08` }}
+                                style={{ backgroundColor: `${sidebarColor}08` }}
                             >
                                 <h2 className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: primaryColor }}>
                                     Skills
@@ -165,7 +166,7 @@ export const Modern = React.forwardRef(({ data, customization = {} }, ref) => {
                         {education && education.length > 0 && (
                             <section
                                 className="p-4 rounded-xl"
-                                style={{ backgroundColor: `${primaryColor}08` }}
+                                style={{ backgroundColor: `${sidebarColor}08` }}
                             >
                                 <div className="flex items-center gap-2 mb-3">
                                     <GraduationCap className="w-4 h-4" style={{ color: primaryColor }} />
