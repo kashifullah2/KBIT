@@ -5,6 +5,7 @@ import { Extractor } from './pages/Extractor';
 import { CVBuilder } from './pages/CVBuilder';
 import { IdeaValidator } from './pages/IdeaValidator';
 import { Monetizer } from './pages/Monetizer';
+import { CareerSimulator } from './pages/CareerSimulator';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -15,22 +16,29 @@ const ProtectedRoute = ({ children }) => {
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
+import { HelmetProvider } from 'react-helmet-async';
+import { Home } from './pages/Home';
+
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Extractor />} />
-            <Route path="cv-builder" element={<CVBuilder />} />
-            <Route path="idea-validator" element={<IdeaValidator />} />
-            <Route path="monetizer" element={<Monetizer />} />
-            <Route path="login" element={<Login />} />
-            <Route path="signup" element={<Signup />} />
-          </Route>
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Home />} />
+              <Route path="extractor" element={<Extractor />} />
+              <Route path="cv-builder" element={<CVBuilder />} />
+              <Route path="idea-validator" element={<IdeaValidator />} />
+              <Route path="monetizer" element={<Monetizer />} />
+              <Route path="career-simulator" element={<CareerSimulator />} />
+              <Route path="login" element={<Login />} />
+              <Route path="signup" element={<Signup />} />
+            </Route>
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   );
 }
 

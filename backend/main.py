@@ -20,10 +20,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-llm = ChatGroq(
-    groq_api_key=os.getenv("GROQ_API_KEY"), 
-    model_name="openai/gpt-oss-120b"
-)
+from llm_factory import get_llm
+
+llm = get_llm()
 
 # --- NEW: Pydantic models for structured output ---
 class ExtractedData(BaseModel):
@@ -37,10 +36,15 @@ class RefineRequest(BaseModel):
     instructions: str
 
 # --- NEW: File Upload and Processing Endpoint ---
-from fastapi import UploadFile, File, HTTPException, Form, status
+# --- NEW: File Upload and Processing Endpoint ---
+from fastapi import UploadFile, File, HTTPException, Form, status, Response
 from typing import List
 import asyncio
 from ocr_service import extract_text_from_image, extract_text_from_pdf
+
+from PIL import Image
+import io
+
 
 @app.post("/upload")
 async def upload_files(files: List[UploadFile] = File(...), schema: str = Form(None)):
@@ -638,3 +642,32 @@ async def export_idea(
         return {"markdown": md_content, "filename": f"{idea.title.replace(' ', '_')}_analysis.md"}
     else:
         raise HTTPException(status_code=400, detail="Unsupported format. Use 'json' or 'md'")
+
+# --- AI CAREER SIMULATOR ENDPOINTS ---
+from career_service import start_game, process_turn
+
+class StartGameRequest(BaseModel):
+    role: str
+    industry: str
+
+class GameActionRequest(BaseModel):
+    state: dict
+    action: str
+
+@app.post("/career/start")
+async def start_career_game(request: StartGameRequest):
+    """Starts a new career simulation game."""
+    try:
+        initial_state = await start_game(request.role, request.industry)
+        return initial_state
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/career/act")
+async def process_game_turn(request: GameActionRequest):
+    """Process a user action and advance the game state."""
+    try:
+        new_state = await process_turn(request.state, request.action)
+        return new_state
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

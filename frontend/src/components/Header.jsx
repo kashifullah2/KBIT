@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Sparkles, LayoutTemplate, FileText, LogOut, Lightbulb, Menu, X, TrendingUp } from 'lucide-react';
+import { Sparkles, LayoutTemplate, FileText, LogOut, Lightbulb, Menu, X, TrendingUp, Trophy } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export function Header() {
@@ -35,7 +35,7 @@ export function Header() {
 
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex items-center gap-1">
-                        <NavLink to="/" end className={navLinkClass}>
+                        <NavLink to="/extractor" className={navLinkClass}>
                             <LayoutTemplate className="w-4 h-4" />
                             Extractor
                         </NavLink>
@@ -46,6 +46,10 @@ export function Header() {
                         <NavLink to="/idea-validator" className={navLinkClass}>
                             <Lightbulb className="w-4 h-4" />
                             Idea Validator
+                        </NavLink>
+                        <NavLink to="/career-simulator" className={navLinkClass}>
+                            <Trophy className="w-4 h-4" />
+                            Career Sim
                         </NavLink>
                         <NavLink to="/monetizer" className={navLinkClass}>
                             <TrendingUp className="w-4 h-4" />
@@ -100,7 +104,7 @@ export function Header() {
             {mobileMenuOpen && (
                 <div className="md:hidden bg-white border-t border-slate-200 shadow-lg">
                     <nav className="py-2">
-                        <NavLink to="/" end className={mobileNavLinkClass} onClick={() => setMobileMenuOpen(false)}>
+                        <NavLink to="/extractor" className={mobileNavLinkClass} onClick={() => setMobileMenuOpen(false)}>
                             <LayoutTemplate className="w-5 h-5" />
                             Extractor
                         </NavLink>
@@ -111,6 +115,10 @@ export function Header() {
                         <NavLink to="/idea-validator" className={mobileNavLinkClass} onClick={() => setMobileMenuOpen(false)}>
                             <Lightbulb className="w-5 h-5" />
                             Idea Validator
+                        </NavLink>
+                        <NavLink to="/career-simulator" className={mobileNavLinkClass} onClick={() => setMobileMenuOpen(false)}>
+                            <Trophy className="w-5 h-5" />
+                            Career Sim
                         </NavLink>
                         <NavLink to="/monetizer" className={mobileNavLinkClass} onClick={() => setMobileMenuOpen(false)}>
                             <TrendingUp className="w-5 h-5" />
