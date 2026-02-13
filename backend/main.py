@@ -40,29 +40,38 @@ class RefineRequest(BaseModel):
 from fastapi import UploadFile, File, HTTPException, Form, status, Response
 from typing import List
 import asyncio
-from ocr_service import extract_text_from_image, extract_text_from_pdf
+from ocr_service import extract_text_from_image, extract_text_from_pdf, get_available_engines
 
 from PIL import Image
 import io
 
 
+@app.get("/ocr/engines")
+async def list_ocr_engines():
+    """Return the list of available OCR engines."""
+    return {"engines": get_available_engines()}
+
 @app.post("/upload")
-async def upload_files(files: List[UploadFile] = File(...), schema: str = Form(None)):
+async def upload_files(
+    files: List[UploadFile] = File(...),
+    schema: str = Form(None),
+    ocr_engine: str = Form("tesseract")
+):
     # Process files in parallel
-    tasks = [process_single_file(file, schema) for file in files]
+    tasks = [process_single_file(file, schema, ocr_engine) for file in files]
     results = await asyncio.gather(*tasks)
     return results
 
-async def process_single_file(file: UploadFile, schema: str = None) -> ExtractedData:
+async def process_single_file(file: UploadFile, schema: str = None, ocr_engine: str = "tesseract") -> ExtractedData:
     try:
         content = await file.read()
         
         # 1. Extract Text based on file type
         text = ""
         if file.content_type.startswith("image/"):
-            text = extract_text_from_image(content)
+            text = extract_text_from_image(content, engine=ocr_engine)
         elif file.content_type == "application/pdf":
-            text = extract_text_from_pdf(content)
+            text = extract_text_from_pdf(content, engine=ocr_engine)
         else:
             return {
                 "filename": file.filename,
@@ -81,21 +90,32 @@ async def process_single_file(file: UploadFile, schema: str = None) -> Extracted
 
         # 2. Process with Groq to get Structured Data
         if schema:
-            instruction_text = f"Extract SPECIFICALLY the following fields: {schema}. Do not invent fields not asked for."
+            instruction_text = f"""Extract SPECIFICALLY the following fields: {schema}.
+Do not invent fields not asked for.
+Each requested field MUST be its own separate key in the 'fields' dictionary."""
         else:
-            instruction_text = "Identify entities like Names, Dates, Amounts, Addresses, or technical specifications."
+            instruction_text = """Identify ALL distinct entities such as Names, Dates, Amounts, Addresses, Phone Numbers,
+Invoice Numbers, Vendor Names, Items, Quantities, Totals, and any other distinct fields.
+CRITICAL: Each piece of information MUST be its own SEPARATE key in the 'fields' dictionary.
+Do NOT combine multiple values into a single key or a single text blob.
+For example:
+CORRECT:   {{"vendor_name": "Acme Corp", "invoice_date": "2024-01-15", "total_amount": "$500"}}
+INCORRECT: {{"extracted_text": "Vendor: Acme Corp, Date: 2024-01-15, Total: $500"}}"""
 
-        system_prompt = f"""You are an AI data extraction assistant. 
-        Analyze the following text extracted from a document. 
-        Extract key information into structured JSON format. 
-        {instruction_text}
-        Return ONLY valid JSON.
-        Structure:
-        {{{{
-            "summary": "Brief summary",
-            "fields": {{{{ "key": "value" }}}}
-        }}}}
-        """
+        system_prompt = f"""You are an AI data extraction assistant.
+Analyze the following text extracted from a document.
+Extract key information into structured JSON format.
+{instruction_text}
+Return ONLY valid JSON. No markdown, no explanation.
+Structure:
+{{{{
+    "summary": "Brief one-line summary of the document",
+    "fields": {{{{
+        "field_name_1": "value_1",
+        "field_name_2": "value_2"
+    }}}}
+}}}}
+Remember: every distinct piece of data must be a SEPARATE key inside 'fields'."""
         
         chain = ChatPromptTemplate.from_messages([
             ("system", system_prompt),

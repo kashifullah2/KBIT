@@ -5,6 +5,7 @@ import { IdeaResults } from '../components/idea/IdeaResults';
 import { ExportOptions } from '../components/idea/ExportOptions';
 import { API_URL } from '../config';
 import { useAuth } from '../context/AuthContext';
+import { Helmet } from 'react-helmet-async';
 
 export function IdeaValidator() {
     const { isAuthenticated } = useAuth();
@@ -53,16 +54,29 @@ export function IdeaValidator() {
 
     return (
         <div className="space-y-12 pb-20">
+            <Helmet>
+                <title>AI Business Idea Validator - KBIT</title>
+                <meta name="description" content="Validate your startup idea instantly with AI. Get market analysis, SWOT, and actionable feedback to launch with confidence." />
+                <meta name="keywords" content="business idea validator, startup idea checker, AI market analysis, SWOT analysis, startup validation" />
+            </Helmet>
+
             {/* Hero Section */}
-            <div className="text-center space-y-6 max-w-4xl mx-auto pt-16 md:pt-24 px-4">
-                <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-6xl text-balance">
-                    Validate Your{' '}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">
+            <div className="relative overflow-hidden pt-20 pb-16 md:pt-32 md:pb-24 text-center px-4">
+                <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-100/50 via-slate-50/50 to-slate-50"></div>
+
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-50 text-violet-700 text-sm font-medium mb-6 animate-fade-in-up">
+                    <Lightbulb className="w-4 h-4" />
+                    <span>Instant Market Analysis</span>
+                </div>
+
+                <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 animate-fade-in-up delay-100 text-balance">
+                    Validate Your <br />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-fuchsia-600">
                         Business Idea
                     </span>
-                </h2>
+                </h1>
 
-                <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed text-balance">
+                <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed text-balance mb-8 animate-fade-in-up delay-200">
                     Get instant AI-powered analysis of your startup idea. Understand market potential, risks, and actionable next steps.
                 </p>
             </div>

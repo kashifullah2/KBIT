@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FileUpload } from '../components/FileUpload';
 import { DataDisplay } from '../components/DataDisplay';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 import { API_URL } from '../config';
 
@@ -11,7 +12,7 @@ export function Extractor() {
     const [isRefining, setIsRefining] = useState(false);
     const [error, setError] = useState(null);
 
-    const handleFilesSelected = async (files, schema, isMerge) => {
+    const handleFilesSelected = async (files, schema, isMerge, ocrEngine) => {
         if (files.length === 0) return;
 
         setIsUploading(true);
@@ -23,6 +24,10 @@ export function Extractor() {
 
         if (schema && schema.trim()) {
             formData.append('schema', schema);
+        }
+
+        if (ocrEngine) {
+            formData.append('ocr_engine', ocrEngine);
         }
 
         try {
@@ -83,24 +88,34 @@ export function Extractor() {
 
     return (
         <div className="space-y-12 pb-20">
+            <Helmet>
+                <title>AI Document Extractor - KBIT</title>
+                <meta name="description" content="Extract structured data from PDFs, images, and invoices instantly using KBIT's AI-powered OCR technology." />
+                <meta name="keywords" content="OCR, document extraction, AI data extraction, PDF to JSON, image to text" />
+            </Helmet>
+
             {/* Hero Section */}
-            <div className="text-center space-y-6 max-w-4xl mx-auto pt-16 md:pt-24 px-4">
-                {/* <div className="inline-flex items-center rounded-full border border-indigo-100 bg-indigo-50/50 px-3 py-1 text-sm text-indigo-700 backdrop-blur-sm mb-4">
+            <div className="relative overflow-hidden pt-20 pb-16 md:pt-32 md:pb-24 text-center px-4">
+                <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-100/50 via-slate-50/50 to-slate-50"></div>
+
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-medium mb-6 animate-fade-in-up">
+                    <span className="flex h-2 w-2 rounded-full bg-blue-600 animate-pulse"></span>
+                    AI-Powered Extraction 2.0
+                </div>
+
+                <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 animate-fade-in-up delay-100 text-balance">
+                    {/* <div className="inline-flex items-center rounded-full border border-indigo-100 bg-indigo-50/50 px-3 py-1 text-sm text-indigo-700 backdrop-blur-sm mb-4">
                     <span className="flex h-2 w-2 rounded-full bg-indigo-600 mr-2 animate-pulse"></span>
                     AI-Powered Extraction 2.0
                 </div> */}
 
-                <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-6xl text-balance">
                     Transform Documents into <br />
-                    <span className="text-indigo-600 relative inline-block">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600">
                         Structured Data
-                        <svg className="absolute -bottom-2 left-0 w-full h-2 text-indigo-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
-                            <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="4" fill="none" />
-                        </svg>
                     </span>
-                </h2>
+                </h1>
 
-                <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed text-balance">
+                <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed text-balance mb-8 animate-fade-in-up delay-200">
                     Stop manual entry. Upload receipts, invoices, or forms and get <span className="font-semibold text-slate-900">pixel-perfect JSON</span> in seconds.
                 </p>
             </div>

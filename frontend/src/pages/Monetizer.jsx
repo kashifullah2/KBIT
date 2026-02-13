@@ -13,6 +13,7 @@ import {
     Target
 } from 'lucide-react';
 import { ExecutionPlanModal } from '../components/ExecutionPlanModal';
+import { Helmet } from 'react-helmet-async';
 
 export function Monetizer() {
     const [skills, setSkills] = useState([]);
@@ -51,73 +52,84 @@ export function Monetizer() {
 
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
+            <Helmet>
+                <title>Skill Monetizer - KBIT</title>
+                <meta name="description" content="Turn your skills into income streams. Get personalized freelance, digital product, and service suggestions with KBIT's AI." />
+                <meta name="keywords" content="skill monetization, freelance ideas, side hustle, digital products, make money online" />
+            </Helmet>
+
             {/* Hero Section */}
-            <div className="bg-white border-b border-slate-200">
-                <div className="max-w-4xl mx-auto px-4 py-16 sm:px-6 lg:px-8 text-center">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium mb-6">
-                        <Sparkles className="w-4 h-4" />
-                        <span>AI Income Strategist</span>
+            <div className="relative overflow-hidden pt-20 pb-16 md:pt-32 md:pb-24 text-center px-4 border-b border-slate-200 bg-white">
+                <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-100/50 via-slate-50/50 to-slate-50"></div>
+
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium mb-6 animate-fade-in-up">
+                    <Sparkles className="w-4 h-4" />
+                    <span>AI Income Strategist</span>
+                </div>
+
+                <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 animate-fade-in-up delay-100 text-balance">
+                    Turn Your Skills Into <br />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">
+                        Income Streams
+                    </span>
+                </h1>
+
+                <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed text-balance mb-8 animate-fade-in-up delay-200">
+                    Stop learning for free. Enter your skills below, and our AI will generate
+                    <span className="font-semibold text-slate-900"> 3 concrete paths</span> to start earning money today.
+                </p>
+
+                {/* Skill Input Area */}
+                <div className="max-w-xl mx-auto">
+                    <div className="flex flex-wrap gap-2 mb-4 min-h-[40px]">
+                        {skills.map((skill, index) => (
+                            <span key={index} className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-slate-100 text-slate-700 font-medium text-sm animate-fadeIn">
+                                {skill}
+                                <button onClick={() => removeSkill(skill)} className="hover:text-red-500">
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            </span>
+                        ))}
                     </div>
-                    <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight mb-4">
-                        Turn Your Skills Into <span className="text-emerald-600">Income</span>
-                    </h1>
-                    <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-8">
-                        Stop learning for free. Enter your skills below, and our AI will generate
-                        3 concrete paths to start earning money today.
-                    </p>
 
-                    {/* Skill Input Area */}
-                    <div className="max-w-xl mx-auto">
-                        <div className="flex flex-wrap gap-2 mb-4 min-h-[40px]">
-                            {skills.map((skill, index) => (
-                                <span key={index} className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-slate-100 text-slate-700 font-medium text-sm animate-fadeIn">
-                                    {skill}
-                                    <button onClick={() => removeSkill(skill)} className="hover:text-red-500">
-                                        <X className="w-3.5 h-3.5" />
-                                    </button>
-                                </span>
-                            ))}
-                        </div>
-
-                        <div className="relative group">
-                            <input
-                                type="text"
-                                value={currentInput}
-                                onChange={(e) => setCurrentInput(e.target.value)}
-                                onKeyDown={handleAddSkill}
-                                placeholder="Type a skill (e.g. React, Writing, Photoshop) and press Enter"
-                                className="w-full px-5 py-4 bg-white border-2 border-slate-200 rounded-xl shadow-sm text-lg outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all"
-                            />
-                            <button
-                                onClick={handleAddSkill}
-                                className="absolute right-3 top-3 p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-emerald-500 hover:text-white transition-colors"
-                            >
-                                <Plus className="w-5 h-5" />
-                            </button>
-                        </div>
-
+                    <div className="relative group">
+                        <input
+                            type="text"
+                            value={currentInput}
+                            onChange={(e) => setCurrentInput(e.target.value)}
+                            onKeyDown={handleAddSkill}
+                            placeholder="Type a skill (e.g. React, Writing, Photoshop) and press Enter"
+                            className="w-full px-5 py-4 bg-white border-2 border-slate-200 rounded-xl shadow-sm text-lg outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all"
+                        />
                         <button
-                            onClick={generateOpportunities}
-                            disabled={skills.length === 0 || isAnalyzing}
-                            className={`mt-6 w-full py-4 rounded-xl text-lg font-bold shadow-lg transition-all flex items-center justify-center gap-2
-                                ${skills.length === 0
-                                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                                    : 'bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-emerald-500/25 hover:-translate-y-0.5'
-                                }`}
+                            onClick={handleAddSkill}
+                            className="absolute right-3 top-3 p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-emerald-500 hover:text-white transition-colors"
                         >
-                            {isAnalyzing ? (
-                                <>
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    Analyzing Market Opportunities...
-                                </>
-                            ) : (
-                                <>
-                                    <TrendingUp className="w-5 h-5" />
-                                    Generate Income Paths
-                                </>
-                            )}
+                            <Plus className="w-5 h-5" />
                         </button>
                     </div>
+
+                    <button
+                        onClick={generateOpportunities}
+                        disabled={skills.length === 0 || isAnalyzing}
+                        className={`mt-6 w-full py-4 rounded-xl text-lg font-bold shadow-lg transition-all flex items-center justify-center gap-2
+                                ${skills.length === 0
+                                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                : 'bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-emerald-500/25 hover:-translate-y-0.5'
+                            }`}
+                    >
+                        {isAnalyzing ? (
+                            <>
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Analyzing Market Opportunities...
+                            </>
+                        ) : (
+                            <>
+                                <TrendingUp className="w-5 h-5" />
+                                Generate Income Paths
+                            </>
+                        )}
+                    </button>
                 </div>
             </div>
 
@@ -170,7 +182,8 @@ export function Monetizer() {
                         />
                     </div>
                 </div>
-            )}
+            )
+            }
 
             <ExecutionPlanModal
                 isOpen={!!selectedPlan}
@@ -178,7 +191,7 @@ export function Monetizer() {
                 plan={selectedPlan}
                 title={planTitle}
             />
-        </div>
+        </div >
     );
 }
 

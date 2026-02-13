@@ -1,13 +1,43 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { UploadCloud, File, X, Code, Check } from 'lucide-react';
+import { UploadCloud, File, X, Code, Check, Settings2, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
+import { API_URL } from '../config';
 
 export function FileUpload({ onFilesSelected, isUploading }) {
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [schema, setSchema] = useState("");
     const [isMerge, setIsMerge] = useState(true);
+    const [ocrEngine, setOcrEngine] = useState("tesseract");
+    const [availableEngines, setAvailableEngines] = useState([]);
+    const [enginesLoading, setEnginesLoading] = useState(true);
+
+    // Fetch available OCR engines on mount
+    useEffect(() => {
+        async function fetchEngines() {
+            try {
+                const res = await fetch(`${API_URL}/ocr/engines`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setAvailableEngines(data.engines || []);
+                    // Default to the first available engine
+                    if (data.engines?.length > 0) {
+                        setOcrEngine(data.engines[0].id);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch OCR engines:", err);
+                // Fallback engines
+                setAvailableEngines([
+                    { id: "tesseract", name: "Tesseract OCR", description: "Default OCR engine." }
+                ]);
+            } finally {
+                setEnginesLoading(false);
+            }
+        }
+        fetchEngines();
+    }, []);
 
     const onDrop = useCallback(acceptedFiles => {
         setSelectedFiles(prev => [...prev, ...acceptedFiles]);
@@ -18,7 +48,7 @@ export function FileUpload({ onFilesSelected, isUploading }) {
     };
 
     const handleProcess = () => {
-        onFilesSelected(selectedFiles, schema, isMerge);
+        onFilesSelected(selectedFiles, schema, isMerge, ocrEngine);
         setSelectedFiles([]);
         setSchema("");
     };
@@ -98,7 +128,35 @@ export function FileUpload({ onFilesSelected, isUploading }) {
                         <div className="h-px bg-slate-100" />
 
                         {/* Configuration */}
-                        <div className="grid md:grid-cols-2 gap-6">
+                        <div className="grid md:grid-cols-3 gap-6">
+                            {/* OCR Engine Selector */}
+                            <div className="space-y-3">
+                                <label className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                                    <Settings2 className="w-4 h-4 text-indigo-600" />
+                                    OCR Engine
+                                </label>
+                                <div className="relative">
+                                    <select
+                                        value={ocrEngine}
+                                        onChange={(e) => setOcrEngine(e.target.value)}
+                                        disabled={enginesLoading}
+                                        className="w-full px-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all appearance-none cursor-pointer pr-10"
+                                    >
+                                        {availableEngines.map(engine => (
+                                            <option key={engine.id} value={engine.id}>
+                                                {engine.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                                </div>
+                                {availableEngines.find(e => e.id === ocrEngine)?.description && (
+                                    <p className="text-xs text-slate-400">
+                                        {availableEngines.find(e => e.id === ocrEngine)?.description}
+                                    </p>
+                                )}
+                            </div>
+
                             {/* Schema Input */}
                             <div className="space-y-3">
                                 <label className="flex items-center gap-2 text-sm font-semibold text-slate-800">

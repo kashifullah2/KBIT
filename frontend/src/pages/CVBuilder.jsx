@@ -6,6 +6,7 @@ import { useReactToPrint } from 'react-to-print';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { API_URL } from '../config';
+import { Helmet } from 'react-helmet-async';
 
 import { AuthModal } from '../components/AuthModal.jsx';
 
@@ -243,6 +244,11 @@ export function CVBuilder() {
 
     return (
         <div className="h-[calc(100vh-4rem)] md:h-full flex flex-col md:flex-row overflow-hidden relative bg-slate-50/50">
+            <Helmet>
+                <title>AI CV Builder - Create Professional Resumes | KBIT</title>
+                <meta name="description" content="Build ATS-friendly, professional resumes in minutes with KBIT's AI-powered CV Builder. Choose from modern templates and get AI suggestions." />
+                <meta name="keywords" content="resume builder, CV maker, AI resume, ATS friendly, professional CV templates" />
+            </Helmet>
             {/* Mobile Tab Switcher */}
             <div className="md:hidden flex p-1 bg-white border-b border-slate-200 shrink-0">
                 <button

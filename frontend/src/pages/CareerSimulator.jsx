@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, Trophy, Heart, Activity, Briefcase, ChevronRight, AlertTriangle, Play } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 export function CareerSimulator() {
     // Game States: 'landing', 'playing', 'gameover'
@@ -67,6 +68,12 @@ export function CareerSimulator() {
 
     return (
         <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
+            <Helmet>
+                <title>Career Simulator - The 7-Day Challenge | KBIT</title>
+                <meta name="description" content="Test your workplace decision-making skills in a high-stakes 7-day career simulation. Make choices, manage stress, and build your reputation." />
+                <meta name="keywords" content="career simulator, workplace simulation, decision making game, professional development, career challenge" />
+            </Helmet>
+
             <div className="max-w-4xl mx-auto">
 
                 {/* HEADLINE */}

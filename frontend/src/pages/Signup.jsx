@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LayoutTemplate, Loader2 } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 export function Signup() {
     const [formData, setFormData] = useState({
@@ -43,6 +44,11 @@ export function Signup() {
 
     return (
         <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+            <Helmet>
+                <title>Sign Up - KBIT</title>
+                <meta name="description" content="Create your KBIT account to access AI-powered CV builder and professional tools." />
+            </Helmet>
+
             <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 space-y-8">
                 <div className="text-center space-y-2">
                     <div className="inline-flex items-center gap-2 mb-2">
