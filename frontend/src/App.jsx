@@ -3,9 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Extractor } from './pages/Extractor';
 import { CVBuilder } from './pages/CVBuilder';
-import { IdeaValidator } from './pages/IdeaValidator';
-import { Monetizer } from './pages/Monetizer';
-import { CareerSimulator } from './pages/CareerSimulator';
+
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -29,9 +27,7 @@ function App() {
               <Route index element={<Home />} />
               <Route path="extractor" element={<Extractor />} />
               <Route path="cv-builder" element={<CVBuilder />} />
-              <Route path="idea-validator" element={<IdeaValidator />} />
-              <Route path="monetizer" element={<Monetizer />} />
-              <Route path="career-simulator" element={<CareerSimulator />} />
+
               <Route path="login" element={<Login />} />
               <Route path="signup" element={<Signup />} />
             </Route>

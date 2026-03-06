@@ -29,27 +29,7 @@ export function Home() {
             link: "/cv-builder",
             color: "bg-emerald-50 border-emerald-100 hover:border-emerald-300"
         },
-        {
-            title: "Idea Validator",
-            description: "Validate your startup ideas with AI market analysis, SWOT, and viability scoring.",
-            icon: <Lightbulb className="w-6 h-6 text-amber-600" />,
-            link: "/idea-validator",
-            color: "bg-amber-50 border-amber-100 hover:border-amber-300"
-        },
-        {
-            title: "Career Simulator",
-            description: "Test your workplace decision-making skills in a high-stakes 7-day role simulation.",
-            icon: <Trophy className="w-6 h-6 text-purple-600" />,
-            link: "/career-simulator",
-            color: "bg-purple-50 border-purple-100 hover:border-purple-300"
-        },
-        {
-            title: "Skill Monetizer",
-            description: "Discover how to turn your skills into income streams with personalized gig suggestions.",
-            icon: <TrendingUp className="w-6 h-6 text-rose-600" />,
-            link: "/monetizer",
-            color: "bg-rose-50 border-rose-100 hover:border-rose-300"
-        }
+
     ];
 
     return (
@@ -89,12 +69,6 @@ export function Home() {
                             >
                                 <Zap className="w-5 h-5 fill-current" />
                                 Build Your CV
-                            </Link>
-                            <Link
-                                to="/idea-validator"
-                                className="px-8 py-4 text-lg font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center gap-2"
-                            >
-                                Validate Idea
                             </Link>
                         </div>
                     </div>

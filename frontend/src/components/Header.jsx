@@ -43,18 +43,7 @@ export function Header() {
                             <FileText className="w-4 h-4" />
                             CV Builder
                         </NavLink>
-                        <NavLink to="/idea-validator" className={navLinkClass}>
-                            <Lightbulb className="w-4 h-4" />
-                            Idea Validator
-                        </NavLink>
-                        <NavLink to="/career-simulator" className={navLinkClass}>
-                            <Trophy className="w-4 h-4" />
-                            Career Sim
-                        </NavLink>
-                        <NavLink to="/monetizer" className={navLinkClass}>
-                            <TrendingUp className="w-4 h-4" />
-                            Monetizer
-                        </NavLink>
+
                     </nav>
 
                     {/* Desktop Auth Buttons */}
@@ -112,18 +101,7 @@ export function Header() {
                             <FileText className="w-5 h-5" />
                             CV Builder
                         </NavLink>
-                        <NavLink to="/idea-validator" className={mobileNavLinkClass} onClick={() => setMobileMenuOpen(false)}>
-                            <Lightbulb className="w-5 h-5" />
-                            Idea Validator
-                        </NavLink>
-                        <NavLink to="/career-simulator" className={mobileNavLinkClass} onClick={() => setMobileMenuOpen(false)}>
-                            <Trophy className="w-5 h-5" />
-                            Career Sim
-                        </NavLink>
-                        <NavLink to="/monetizer" className={mobileNavLinkClass} onClick={() => setMobileMenuOpen(false)}>
-                            <TrendingUp className="w-5 h-5" />
-                            Monetizer
-                        </NavLink>
+
                     </nav>
 
                     <div className="border-t border-slate-200 p-4">
