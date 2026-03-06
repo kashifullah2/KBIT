@@ -1,6 +1,6 @@
 schemaVersion: 1.0
 endpoints:
-  - name: API
+  - name: kbit-api
     port: 8000
     type: REST
-    networkVisibility: public
+    networkVisibility: Public
