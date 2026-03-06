@@ -1,1 +1,6 @@
-schemaVersion: 1.0\nendpoints:\n  - name: API\n    port: 8000\n    type: REST\n    networkVisibility: public
+schemaVersion: 1.0
+endpoints:
+  - name: API
+    port: 8000
+    type: REST
+    networkVisibility: public
