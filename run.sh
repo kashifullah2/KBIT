@@ -28,8 +28,8 @@ echo ">>> Updating system and installing dependencies..."
 sudo apt update -y
 sudo apt upgrade -y
 
-# Install Nginx, PostgreSQL, Python 3 venv, and Node.js
-sudo apt install -y nginx postgresql postgresql-contrib python3 python3-venv python3-pip curl jq git lsof
+# Install Nginx, PostgreSQL, Python 3 venv, Node.js, and OCR dependencies
+sudo apt install -y nginx postgresql postgresql-contrib python3 python3-venv python3-pip curl jq git lsof tesseract-ocr libtesseract-dev
 
 # Install Node.js (Using NodeSource for latest LTS)
 if ! command -v node &> /dev/null; then
