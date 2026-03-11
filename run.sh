@@ -148,7 +148,7 @@ After=network.target
 User=$ACTUAL_USER
 Group=www-data
 WorkingDirectory=$ABS_BACKEND_DIR
-Environment="PATH=$ABS_BACKEND_DIR/venv/bin"
+Environment="PATH=$ABS_BACKEND_DIR/venv/bin:/usr/local/bin:/usr/bin:/bin"
 # Using Uvicorn worker class with Gunicorn. Binding to localhost:8000
 # Tuning parameters:
 # --max-requests 100: Restarts a worker after 100 requests to prevent memory leaks over time (crucial for 4GB RAM)
