@@ -145,7 +145,7 @@ cd $FRONTEND_DIR
 echo ">>> Building React frontend..."
 npm install
 # Setting environment variable during build so Vite proxy is not used in production, and API calls go to relative paths
-export VITE_API_URL="" 
+export VITE_API_URL="/" 
 npm run build
 
 #--------------------------------------------------
