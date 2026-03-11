@@ -45,9 +45,10 @@ fi
 sudo npm install -g pm2
 
 #--------------------------------------------------
-# 2. Setup PostgreSQL Database
+# 2. Setup PostgreSQL Database & PgBouncer
 #--------------------------------------------------
-echo ">>> Configuring PostgreSQL Database..."
+echo ">>> Configuring PostgreSQL Database and Connection Pooling..."
+sudo apt install -y pgbouncer
 sudo systemctl start postgresql
 sudo systemctl enable postgresql
 
@@ -60,6 +61,30 @@ sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
 
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
 sudo -u postgres psql -c "ALTER USER $DB_USER CREATEDB;"
+
+# Configure PgBouncer
+echo ">>> Configuring PgBouncer for optimal connection pooling..."
+# Use MD5 password hashed natively by Postgres for PgBouncer auth
+MD5_PASS=$(sudo -u postgres psql -t -c "SELECT concat('\"', rolname, '\" \"', rolpassword, '\"') FROM pg_authid WHERE rolname='$DB_USER';")
+
+sudo bash -c "echo '$MD5_PASS' > /etc/pgbouncer/userlist.txt"
+
+sudo bash -c "cat > /etc/pgbouncer/pgbouncer.ini" <<EOF
+[databases]
+$DB_NAME = host=127.0.0.1 port=5432 dbname=$DB_NAME
+
+[pgbouncer]
+listen_addr = 127.0.0.1
+listen_port = 6432
+auth_type = md5
+auth_file = /etc/pgbouncer/userlist.txt
+pool_mode = transaction
+max_client_conn = 500
+default_pool_size = 20
+EOF
+
+sudo systemctl restart pgbouncer
+sudo systemctl enable pgbouncer
 
 #--------------------------------------------------
 # 3. Setup Backend (FastAPI + Gunicorn)
@@ -87,7 +112,8 @@ pip install gunicorn uvicorn  # Ensure Gunicorn and Uvicorn are installed
 if [ ! -f ".env" ]; then
     echo ">>> Creating a placeholder .env file in backend..."
     cat <<EOF > .env
-DB_URL=postgresql://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME
+# DB_URL points to PgBouncer connection pooler on port 6432 instead of native Postgres 5432
+DB_URL=postgresql://$DB_USER:$DB_PASS@localhost:6432/$DB_NAME
 # Replace these with your actual keys
 GROQ_API_KEY=your_groq_api_key_here
 OPENROUTER_API_KEY=your_openrouter_api_key_here
@@ -124,7 +150,11 @@ Group=www-data
 WorkingDirectory=$ABS_BACKEND_DIR
 Environment="PATH=$ABS_BACKEND_DIR/venv/bin"
 # Using Uvicorn worker class with Gunicorn. Binding to localhost:8000
-ExecStart=$ABS_BACKEND_DIR/venv/bin/gunicorn main:app --workers $WORKERS --worker-class uvicorn.workers.UvicornWorker --bind 127.0.0.1:8000
+# Tuning parameters:
+# --max-requests 100: Restarts a worker after 100 requests to prevent memory leaks over time (crucial for 4GB RAM)
+# --max-requests-jitter 10: Prevents all workers from restarting at the exact same time
+# --timeout 120: Gives heavy OCR tasks up to 2 minutes to finish before the worker is killed and restarted
+ExecStart=$ABS_BACKEND_DIR/venv/bin/gunicorn main:app --workers $WORKERS --worker-class uvicorn.workers.UvicornWorker --bind 127.0.0.1:8000 --max-requests 100 --max-requests-jitter 10 --timeout 120
 
 [Install]
 WantedBy=multi-user.target
