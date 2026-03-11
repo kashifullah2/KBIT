@@ -1,8 +1,0 @@
-schemaVersion: 1.0
-endpoints:
-  - name: kbit-api
-    port: 8000
-    type: REST
-    networkVisibility: Public
-    service:
-      port: 8000
