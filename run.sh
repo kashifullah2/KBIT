@@ -80,6 +80,8 @@ source venv/bin/activate
 
 # Install requirements
 pip install --upgrade pip
+# Install CPU-only PyTorch first to save disk space and avoid CUDA bloat
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 pip install -r requirements.txt
 pip install gunicorn uvicorn  # Ensure Gunicorn and Uvicorn are installed
 
