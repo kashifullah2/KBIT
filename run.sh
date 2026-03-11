@@ -110,6 +110,9 @@ WORKERS=$(( $(nproc) * 2 + 1 ))
 # Use SUDO_USER if available, otherwise fallback to root (happens if script runs natively as root)
 ACTUAL_USER=${SUDO_USER:-root}
 
+# Ensure the backend directory is absolutely resolved
+ABS_BACKEND_DIR=$(readlink -f $BACKEND_DIR)
+
 sudo bash -c "cat > $SERVICE_FILE" <<EOF
 [Unit]
 Description=Gunicorn instance to serve KBIT FastAPI Backend
@@ -118,10 +121,10 @@ After=network.target
 [Service]
 User=$ACTUAL_USER
 Group=www-data
-WorkingDirectory=$BACKEND_DIR
-Environment="PATH=$BACKEND_DIR/venv/bin"
+WorkingDirectory=$ABS_BACKEND_DIR
+Environment="PATH=$ABS_BACKEND_DIR/venv/bin"
 # Using Uvicorn worker class with Gunicorn. Binding to localhost:8000
-ExecStart=$BACKEND_DIR/venv/bin/gunicorn main:app --workers $WORKERS --worker-class uvicorn.workers.UvicornWorker --bind 127.0.0.1:8000
+ExecStart=$ABS_BACKEND_DIR/venv/bin/gunicorn main:app --workers $WORKERS --worker-class uvicorn.workers.UvicornWorker --bind 127.0.0.1:8000
 
 [Install]
 WantedBy=multi-user.target
@@ -199,6 +202,8 @@ sudo systemctl enable nginx
 
 # FIX: Nginx needs permission to read the frontend user directory
 echo ">>> Fixing frontend permissions for Nginx..."
+# Ensure the home directory itself is traversable by Nginx (+x)
+sudo chmod o+x /home/$ACTUAL_USER
 sudo chown -R $ACTUAL_USER:www-data $FRONTEND_DIR/dist
 sudo chmod -R 755 $APP_DIR
 sudo usermod -a -G $ACTUAL_USER www-data
