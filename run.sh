@@ -107,13 +107,16 @@ echo ">>> Configuring systemd service for Backend at $SERVICE_FILE..."
 # Get dynamic number of workers based on CPU cores for optimization
 WORKERS=$(( $(nproc) * 2 + 1 ))
 
+# Use SUDO_USER if available, otherwise fallback to root (happens if script runs natively as root)
+ACTUAL_USER=${SUDO_USER:-root}
+
 sudo bash -c "cat > $SERVICE_FILE" <<EOF
 [Unit]
 Description=Gunicorn instance to serve KBIT FastAPI Backend
 After=network.target
 
 [Service]
-User=$USER
+User=$ACTUAL_USER
 Group=www-data
 WorkingDirectory=$BACKEND_DIR
 Environment="PATH=$BACKEND_DIR/venv/bin"
@@ -193,6 +196,12 @@ fi
 sudo nginx -t
 sudo systemctl restart nginx
 sudo systemctl enable nginx
+
+# FIX: Nginx needs permission to read the frontend user directory
+echo ">>> Fixing frontend permissions for Nginx..."
+sudo chown -R $ACTUAL_USER:www-data $FRONTEND_DIR/dist
+sudo chmod -R 755 $APP_DIR
+sudo usermod -a -G $ACTUAL_USER www-data
 
 echo "========================================"
 echo " Deployment Successfully Completed!"
