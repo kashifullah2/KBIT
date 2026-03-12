@@ -1,6 +1,11 @@
 import React from 'react';
+import { TemplateProps } from './types';
 
-const TemplateCreative = ({ data }) => {
+/**
+ * Creative CV Template
+ * A modern, colorful design with a gradient header and a distinct dark sidebar for secondary info.
+ */
+const TemplateCreative: React.FC<TemplateProps> = ({ data }) => {
   const { personalInfo, experience, education, skills, certifications, languages } = data;
 
   return (
@@ -20,10 +25,18 @@ const TemplateCreative = ({ data }) => {
           {personalInfo.phone && <span className="bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm break-words max-w-[250px] inline-block shadow-sm font-bold">{personalInfo.phone}</span>}
           {personalInfo.address && <span className="bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm break-words max-w-[250px] inline-block whitespace-pre-wrap text-left leading-tight shadow-sm font-bold">{personalInfo.address}</span>}
           {(personalInfo.linkedin || personalInfo.github) && (
-             <div className="flex gap-2 mt-1">
-               {personalInfo.linkedin && <a href={personalInfo.linkedin} className="bg-teal-700/50 hover:bg-teal-700 px-3 py-1 rounded-full backdrop-blur-sm break-all max-w-[150px] inline-block shadow-sm font-bold transition-colors">{personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}</a>}
-               {personalInfo.github && <a href={personalInfo.github} className="bg-emerald-700/50 hover:bg-emerald-700 px-3 py-1 rounded-full backdrop-blur-sm break-all max-w-[150px] inline-block shadow-sm font-bold transition-colors">{personalInfo.github.replace(/^https?:\/\/(www\.)?/, '')}</a>}
-             </div>
+            <div className="flex gap-2 mt-1">
+              {personalInfo.linkedin && (
+                <a href={personalInfo.linkedin} target="_blank" rel="noopener noreferrer" className="bg-teal-700/50 hover:bg-teal-700 px-3 py-1 rounded-full backdrop-blur-sm break-all max-w-[150px] inline-block shadow-sm font-bold transition-colors">
+                  {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}
+                </a>
+              )}
+              {personalInfo.github && (
+                <a href={personalInfo.github} target="_blank" rel="noopener noreferrer" className="bg-emerald-700/50 hover:bg-emerald-700 px-3 py-1 rounded-full backdrop-blur-sm break-all max-w-[150px] inline-block shadow-sm font-bold transition-colors">
+                  {personalInfo.github.replace(/^https?:\/\/(www\.)?/, '')}
+                </a>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -45,40 +58,42 @@ const TemplateCreative = ({ data }) => {
           )}
 
           {/* Experience */}
-          <div className="relative">
-            <div className="absolute -left-4 top-0 w-1 h-full bg-teal-500 rounded-full"></div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Work Experience</h2>
-            <div className="space-y-8">
-              {experience.map((exp, i) => (
-                <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900">{exp.title}</h3>
-                      <p className="text-teal-600 font-bold text-sm tracking-wide uppercase">{exp.company}</p>
+          {experience && experience.length > 0 && (
+            <div className="relative">
+              <div className="absolute -left-4 top-0 w-1 h-full bg-teal-500 rounded-full"></div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">Work Experience</h2>
+              <div className="space-y-8">
+                {experience.map((exp, i) => (
+                  <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">{exp.title}</h3>
+                        <p className="text-teal-600 font-bold text-sm tracking-wide uppercase">{exp.company}</p>
+                      </div>
+                      <span className="text-xs font-bold bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
+                        {exp.startDate} {exp.endDate ? `- ${exp.endDate}` : ''}
+                      </span>
                     </div>
-                    <span className="text-xs font-bold bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
-                      {exp.startDate} {exp.endDate ? `- ${exp.endDate}` : ''}
-                    </span>
+                    <div className="text-sm text-gray-600 mt-4 space-y-2">
+                      {exp.description?.split('\n')
+                        .map(line => line.trim())
+                        .filter(Boolean)
+                        .map((line, j) => {
+                          const text = line.replace(/^- /, '');
+                          if (!text) return null;
+                          return (
+                            <div key={j} className="flex gap-3 break-words whitespace-pre-wrap break-inside-avoid">
+                              {line.startsWith('-') && <span className="text-teal-400 mt-0.5 font-black shrink-0">›</span>}
+                              <span>{text}</span>
+                            </div>
+                          );
+                        })}
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600 mt-4 space-y-2">
-                    {exp.description?.split('\n')
-                      .map(line => line.trim())
-                      .filter(Boolean)
-                      .map((line, j) => {
-                      const text = line.replace(/^- /,'');
-                      if(!text) return null;
-                      return (
-                        <div key={j} className="flex gap-3 break-words whitespace-pre-wrap break-inside-avoid">
-                          {line.startsWith('-') && <span className="text-teal-400 mt-0.5 font-black shrink-0">›</span>}
-                          <span>{text}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Sidebar (Right) */}
@@ -91,7 +106,7 @@ const TemplateCreative = ({ data }) => {
             <div className="space-y-10 relative z-10">
               
               {/* Education */}
-              {education.length > 0 && (
+              {education && education.length > 0 && (
                 <div>
                   <h2 className="text-lg font-bold mb-5 flex items-center gap-3 tracking-widest uppercase text-slate-100">
                     <span className="bg-teal-500 w-6 h-1 rounded-full block"></span> Education
@@ -109,7 +124,7 @@ const TemplateCreative = ({ data }) => {
               )}
 
               {/* Skills */}
-              {skills?.length > 0 && (
+              {skills && skills.length > 0 && (
                 <div>
                   <h2 className="text-lg font-bold mb-5 flex items-center gap-3 tracking-widest uppercase text-slate-100">
                     <span className="bg-teal-500 w-6 h-1 rounded-full block"></span> Expertise
@@ -125,7 +140,7 @@ const TemplateCreative = ({ data }) => {
               )}
 
               {/* Languages */}
-              {languages?.length > 0 && (
+              {languages && languages.length > 0 && (
                 <div>
                   <h2 className="text-lg font-bold mb-5 flex items-center gap-3 tracking-widest uppercase text-slate-100">
                     <span className="bg-teal-500 w-6 h-1 rounded-full block"></span> Languages
@@ -142,7 +157,7 @@ const TemplateCreative = ({ data }) => {
               )}
 
               {/* Certifications */}
-              {certifications?.length > 0 && (
+              {certifications && certifications.length > 0 && (
                 <div>
                   <h2 className="text-lg font-bold mb-5 flex items-center gap-3 tracking-widest uppercase text-slate-100">
                     <span className="bg-teal-500 w-6 h-1 rounded-full block"></span> Accolades

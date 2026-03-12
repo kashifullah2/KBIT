@@ -10,7 +10,8 @@ import {
     ArrowRight,
     CheckCircle2,
     Sparkles,
-    Zap
+    Zap,
+    Library
 } from 'lucide-react';
 
 export function Home() {

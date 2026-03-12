@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useCVStore from '../../store/useCVStore';
-import { User, Briefcase, GraduationCap, Wrench, FileText, ChevronDown, Plus, Trash2, Wand2, Loader2, Check } from 'lucide-react';
+import { User, Briefcase, GraduationCap, Wrench, FileText, ChevronDown, Plus, Trash2, Wand2, Loader2 } from 'lucide-react';
 import axios from 'axios';
+import { CVData, CustomField } from './types';
 
-const MD3Input = ({ label, name, value, onChange, type = "text", ...props }) => (
+interface MD3InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+}
+
+const MD3Input: React.FC<MD3InputProps> = ({ label, name, value, onChange, type = "text", ...props }) => (
   <div className="relative w-full">
     <input
       type={type}
@@ -21,7 +26,11 @@ const MD3Input = ({ label, name, value, onChange, type = "text", ...props }) => 
   </div>
 );
 
-const MD3TextArea = ({ label, name, value, onChange, rows = 5, ...props }) => (
+interface MD3TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label: string;
+}
+
+const MD3TextArea: React.FC<MD3TextAreaProps> = ({ label, name, value, onChange, rows = 5, ...props }) => (
   <div className="relative w-full h-full">
     <textarea
       name={name}
@@ -38,7 +47,16 @@ const MD3TextArea = ({ label, name, value, onChange, rows = 5, ...props }) => (
   </div>
 );
 
-const AccordionSection = ({ id, title, icon: Icon, isOpen, onToggle, children }) => (
+interface AccordionSectionProps {
+  id: string;
+  title: string;
+  icon: React.ElementType;
+  isOpen: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}
+
+const AccordionSection: React.FC<AccordionSectionProps> = ({ title, isOpen, onToggle, children }) => (
   <div className={`bg-white border-b border-slate-200 last:border-b-0 transition-all duration-300 overflow-hidden`}>
     <button 
       onClick={onToggle}
@@ -69,8 +87,8 @@ const AccordionSection = ({ id, title, icon: Icon, isOpen, onToggle, children })
   </div>
 );
 
-const SidebarForm = () => {
-  const [openSection, setOpenSection] = useState('personal');
+const SidebarForm: React.FC = () => {
+  const [openSection, setOpenSection] = useState<string | null>('personal');
   const cvData = useCVStore((state) => state.cvData);
   const updatePersonalInfo = useCVStore((state) => state.updatePersonalInfo);
   const addExperience = useCVStore((state) => state.addExperience);
@@ -92,25 +110,17 @@ const SidebarForm = () => {
   const loadDummyData = useCVStore((state) => state.loadDummyData);
   const clearData = useCVStore((state) => state.clearData);
 
-  const [isGenerating, setIsGenerating] = useState({});
+  const [isGenerating, setIsGenerating] = useState<Record<number, boolean>>({});
 
-  const toggleSection = (id) => {
+  const toggleSection = (id: string) => {
     setOpenSection(openSection === id ? null : id);
   };
 
-  const sections = [
-    { id: 'personal', title: 'Personal Details', icon: User },
-    { id: 'experience', title: 'Employment', icon: Briefcase },
-    { id: 'education', title: 'Education', icon: GraduationCap },
-    { id: 'skills', title: 'Skills', icon: Wrench },
-    { id: 'summary', title: 'Professional Summary', icon: FileText },
-  ];
-
-  const handlePersonalChange = (e) => {
+  const handlePersonalChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     updatePersonalInfo({ [e.target.name]: e.target.value });
   };
 
-  const handleMagicWrite = async (index, jobTitle) => {
+  const handleMagicWrite = async (index: number, jobTitle: string) => {
     if (!jobTitle) {
       alert("Please enter a job title first.");
       return;
@@ -176,8 +186,8 @@ const SidebarForm = () => {
                 <MD3Input label="Email Address" type="email" name="email" value={cvData.personalInfo.email} onChange={handlePersonalChange} />
                 <MD3Input label="Phone Number" name="phone" value={cvData.personalInfo.phone} onChange={handlePersonalChange} />
                 <MD3Input label="Location (City, State)" name="address" value={cvData.personalInfo.address} onChange={handlePersonalChange} />
-                <MD3Input label="LinkedIn Profile" name="linkedin" value={cvData.personalInfo.linkedin} onChange={handlePersonalChange} />
-                <MD3Input label="GitHub Profile" name="github" value={cvData.personalInfo.github} onChange={handlePersonalChange} />
+                <MD3Input label="LinkedIn Profile" name="linkedin" value={cvData.personalInfo.linkedin || ''} onChange={handlePersonalChange} />
+                <MD3Input label="GitHub Profile" name="github" value={cvData.personalInfo.github || ''} onChange={handlePersonalChange} />
               </div>
             </AccordionSection>
 

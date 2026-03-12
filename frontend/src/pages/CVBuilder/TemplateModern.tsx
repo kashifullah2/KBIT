@@ -1,7 +1,12 @@
 import React from 'react';
 import { Mail, Phone, MapPin, Linkedin, Github } from 'lucide-react';
+import { TemplateProps } from './types';
 
-const TemplateModern = ({ data }) => {
+/**
+ * Modern CV Template
+ * Features a dark sidebar for contact info and skills, with a clean light main area for experience.
+ */
+const TemplateModern: React.FC<TemplateProps> = ({ data }) => {
   const { personalInfo, experience, education, skills, certifications, languages } = data;
 
   return (
@@ -10,7 +15,7 @@ const TemplateModern = ({ data }) => {
       <div className="w-1/3 bg-slate-900 text-white p-8 h-full overflow-hidden">
         <div className="mb-10 text-center border-b border-slate-700 pb-8">
           <div className="w-28 h-28 mx-auto bg-slate-700 rounded-full flex items-center justify-center text-4xl font-light mb-6 shadow-inner tracking-widest text-slate-300">
-             {personalInfo.firstName?.charAt(0) || ''}{personalInfo.lastName?.charAt(0) || ''}
+            {personalInfo.firstName?.charAt(0) || ''}{personalInfo.lastName?.charAt(0) || ''}
           </div>
           <h1 className="text-2xl font-light tracking-wide uppercase mb-2 leading-snug">
             {personalInfo.firstName || 'First'} <br />
@@ -47,20 +52,24 @@ const TemplateModern = ({ data }) => {
               {personalInfo.linkedin && (
                 <li className="flex items-start gap-3">
                   <Linkedin size={14} className="text-blue-400 mt-0.5 opacity-80 shrink-0" />
-                  <a href={personalInfo.linkedin} className="break-all hover:text-blue-300 text-xs">{personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}</a>
+                  <a href={personalInfo.linkedin} target="_blank" rel="noopener noreferrer" className="break-all hover:text-blue-300 text-xs">
+                    {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}
+                  </a>
                 </li>
               )}
               {personalInfo.github && (
                 <li className="flex items-start gap-3">
                   <Github size={14} className="text-blue-400 mt-0.5 opacity-80 shrink-0" />
-                  <a href={personalInfo.github} className="break-all hover:text-blue-300 text-xs">{personalInfo.github.replace(/^https?:\/\/(www\.)?/, '')}</a>
+                  <a href={personalInfo.github} target="_blank" rel="noopener noreferrer" className="break-all hover:text-blue-300 text-xs">
+                    {personalInfo.github.replace(/^https?:\/\/(www\.)?/, '')}
+                  </a>
                 </li>
               )}
             </ul>
           </div>
 
           {/* Skills */}
-          {skills?.length > 0 && (
+          {skills && skills.length > 0 && (
             <div>
               <h3 className="text-xs font-bold uppercase tracking-widest mb-4 border-b border-slate-700 pb-2 text-slate-400">Expertise</h3>
               <div className="flex flex-wrap gap-1.5">
@@ -74,7 +83,7 @@ const TemplateModern = ({ data }) => {
           )}
 
           {/* Languages */}
-          {languages?.length > 0 && (
+          {languages && languages.length > 0 && (
             <div>
               <h3 className="text-xs font-bold uppercase tracking-widest mb-4 border-b border-slate-700 pb-2 text-slate-400">Languages</h3>
               <div className="flex flex-col gap-2">
@@ -107,7 +116,7 @@ const TemplateModern = ({ data }) => {
         )}
 
         {/* Education — Moved from sidebar to main content */}
-        {education?.length > 0 && (
+        {education && education.length > 0 && (
           <div>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-7 border-t-2 border-blue-500"></div>
@@ -130,7 +139,7 @@ const TemplateModern = ({ data }) => {
         )}
 
         {/* Experience */}
-        {experience?.length > 0 && (
+        {experience && experience.length > 0 && (
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-7 border-t-2 border-blue-500"></div>
@@ -155,7 +164,7 @@ const TemplateModern = ({ data }) => {
                         .map((line, j) => (
                           <p key={j} className={`mb-1.5 break-words whitespace-pre-wrap ${line.startsWith('-') ? 'flex gap-2' : ''}`}>
                             {line.startsWith('-') && <span className="text-blue-500 font-bold shrink-0">•</span>}
-                            <span>{line.replace(/^- /,'')}</span>
+                            <span>{line.replace(/^- /, '')}</span>
                           </p>
                         ))}
                     </div>
@@ -167,7 +176,7 @@ const TemplateModern = ({ data }) => {
         )}
 
         {/* Certifications — Moved from sidebar to main content */}
-        {certifications?.length > 0 && (
+        {certifications && certifications.length > 0 && (
           <div>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-7 border-t-2 border-blue-500"></div>

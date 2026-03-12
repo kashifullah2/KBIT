@@ -3,3 +3,10 @@ __pycache__/
 *.pyc
 node_modules/
 dist/
+*.db
+.DS_Store
+.vscode/
+.idea/
+coverage/
+build/
+*.log

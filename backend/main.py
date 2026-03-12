@@ -1,11 +1,18 @@
+from typing import List, Dict, Any, Union, Optional
 import os
-from fastapi import FastAPI
+import datetime
+import json
+import io
+import asyncio
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form, status, Response, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, ToolMessage
 from dotenv import load_dotenv
-import datetime
+from PIL import Image
+
 load_dotenv()
 
 app = FastAPI()
@@ -23,23 +30,83 @@ app.add_middleware(
 )
 
 from llm_factory import get_llm
+from agent import get_agent_response
+from ocr_service import get_available_engines, extract_text_from_pdf, extract_text_from_image
 
 llm = get_llm()
 
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+class ChatRequest(BaseModel):
+    messages: List[ChatMessage]
+    thread_id: Optional[str] = "default"
+
+@app.post("/chat")
+async def chat_with_agent(request: ChatRequest):
+    try:
+        # Convert request messages to LangChain format
+        history = []
+        for msg in request.messages:
+            if msg.role == "user":
+                history.append(HumanMessage(content=msg.content))
+            elif msg.role == "assistant":
+                # Only add assistant messages if we've already started with a user message
+                if history:
+                    history.append(AIMessage(content=msg.content))
+            elif msg.role == "system":
+                # Convert middle-of-conversation system messages to user context for better compatibility
+                history.append(HumanMessage(content=f"[Context]: {msg.content}"))
+        
+        # If history is empty after filtering, or if first message is not user, 
+        # ensure we don't send an invalid start to Groq
+        if not history:
+             return {
+                "role": "assistant",
+                "content": "I'm ready to help! What's on your mind?",
+                "tool_calls": []
+            }
+
+        result = await get_agent_response(history, thread_id=request.thread_id)
+        new_messages = result["messages"][len(history):]
+        
+        # Collect all tool calls that were made during this turn
+        all_tool_calls = []
+        final_content = ""
+        download_paths = []
+        
+        for msg in new_messages:
+            if isinstance(msg, AIMessage):
+                if msg.tool_calls:
+                    all_tool_calls.extend(msg.tool_calls)
+                if msg.content:
+                    final_content = msg.content # The last content message is usually the final response
+            elif isinstance(msg, ToolMessage):
+                # If a tool returned a DOWNLOAD_PATH, we want to make sure it's visible to the user
+                if "DOWNLOAD_PATH:" in str(msg.content):
+                    path_part = str(msg.content).split("DOWNLOAD_PATH:")[1].strip()
+                    download_paths.append(path_part)
+
+        # Append all collected download paths to the final content
+        for path in download_paths:
+            if "DOWNLOAD_PATH:" not in final_content:
+                final_content = final_content.strip() + f"\n\nDOWNLOAD_PATH: {path}"
+
+        return {
+            "role": "assistant",
+            "content": final_content,
+            "tool_calls": all_tool_calls
+        }
+    except Exception as e:
+        print(f"CHAT ERROR: {str(e)}")
+        # If it's a Groq/OpenAI error, it might have more details
+        if hasattr(e, 'response') and hasattr(e.response, 'text'):
+            print(f"DEBUG: Groq Response: {e.response.text}")
+        raise HTTPException(status_code=500, detail=f"AI Agent Error: {str(e)}")
 
 
-# --- NEW: File Upload and Processing Endpoint ---
-# --- NEW: File Upload and Processing Endpoint ---
-from fastapi import UploadFile, File, HTTPException, Form, status, Response
-from typing import List
-import asyncio
-from ocr_service import extract_text_from_image, extract_text_from_pdf, get_available_engines
 
-from PIL import Image
-import io
-
-
-from typing import Dict, Any
 
 class ExtractedData(BaseModel):
     filename: str

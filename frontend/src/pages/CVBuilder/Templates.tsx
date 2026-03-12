@@ -5,11 +5,11 @@ import TemplateProfessional from './TemplateProfessional';
 import TemplateCreative from './TemplateCreative';
 import TemplateElegant from './TemplateElegant';
 
-const Templates = forwardRef((props, ref) => {
+const Templates = forwardRef<HTMLDivElement, {}>((_props, ref) => {
   const selectedTemplate = useCVStore((state) => state.selectedTemplate);
   const cvData = useCVStore((state) => state.cvData);
 
-  let TemplateComponent;
+  let TemplateComponent: React.FC<{ data: any }>;
 
   switch (selectedTemplate) {
     case 'professional':
@@ -28,7 +28,7 @@ const Templates = forwardRef((props, ref) => {
   }
 
   return (
-    <div ref={ref} className="w-full h-full bg-white relative overflow-hidden print:w-auto print:h-auto">
+    <div ref={ref} className="w-full h-full bg-white relative overflow-hidden print:w-auto print:h-auto text-left">
       <TemplateComponent data={cvData} />
     </div>
   );

@@ -1,6 +1,11 @@
 import React from 'react';
+import { TemplateProps } from './types';
 
-const TemplateProfessional = ({ data }) => {
+/**
+ * Professional CV Template
+ * A classic, serif-based design focused on readability and a traditional professional appearance.
+ */
+const TemplateProfessional: React.FC<TemplateProps> = ({ data }) => {
   const { personalInfo, experience, education, skills, certifications, languages } = data;
 
   return (
@@ -19,12 +24,20 @@ const TemplateProfessional = ({ data }) => {
           {personalInfo.email && <span className="break-all">{personalInfo.email}</span>}
           {personalInfo.email && personalInfo.address && <span className="text-gray-300">•</span>}
           {personalInfo.address && <span className="break-words max-w-[400px] text-center">{personalInfo.address}</span>}
-          
+
           {(personalInfo.linkedin || personalInfo.github) && (
             <div className="w-full flex justify-center gap-4 mt-1">
-              {personalInfo.linkedin && <a href={personalInfo.linkedin} className="break-all text-blue-600 hover:text-blue-800 font-medium">{personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}</a>}
+              {personalInfo.linkedin && (
+                <a href={personalInfo.linkedin} target="_blank" rel="noopener noreferrer" className="break-all text-blue-600 hover:text-blue-800 font-medium">
+                  {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}
+                </a>
+              )}
               {personalInfo.linkedin && personalInfo.github && <span className="text-gray-300">•</span>}
-              {personalInfo.github && <a href={personalInfo.github} className="break-all text-gray-800 hover:text-gray-600 font-medium">github.com/{personalInfo.github.split('/').pop()}</a>}
+              {personalInfo.github && (
+                <a href={personalInfo.github} target="_blank" rel="noopener noreferrer" className="break-all text-gray-800 hover:text-gray-600 font-medium">
+                  github.com/{personalInfo.github.split('/').pop()}
+                </a>
+              )}
             </div>
           )}
         </div>
@@ -44,7 +57,7 @@ const TemplateProfessional = ({ data }) => {
         )}
 
         {/* Experience */}
-        {experience.length > 0 && (
+        {experience && experience.length > 0 && (
           <div className="mb-6">
             <h2 className="text-lg font-bold uppercase tracking-wider border-b border-gray-300 mb-4 pb-1 text-gray-800">
               Experience
@@ -66,15 +79,15 @@ const TemplateProfessional = ({ data }) => {
                       .map(line => line.trim())
                       .filter(Boolean)
                       .map((line, j) => {
-                      const text = line.replace(/^- /,'');
-                      if(!text) return null;
-                      return (
-                        <div key={j} className={`flex gap-2 mb-1.5 break-inside-avoid break-words whitespace-pre-wrap`}>
-                          {line.startsWith('-') && <span className="text-gray-400 mt-[1px] shrink-0">•</span>}
-                          <span>{text}</span>
-                        </div>
-                      );
-                    })}
+                        const text = line.replace(/^- /, '');
+                        if (!text) return null;
+                        return (
+                          <div key={j} className={`flex gap-2 mb-1.5 break-inside-avoid break-words whitespace-pre-wrap`}>
+                            {line.startsWith('-') && <span className="text-gray-400 mt-[1px] shrink-0">•</span>}
+                            <span>{text}</span>
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
               ))}
@@ -83,7 +96,7 @@ const TemplateProfessional = ({ data }) => {
         )}
 
         {/* Education */}
-        {education.length > 0 && (
+        {education && education.length > 0 && (
           <div className="mb-6">
             <h2 className="text-lg font-bold uppercase tracking-wider border-b border-gray-300 mb-4 pb-1 text-gray-800">
               Education
@@ -105,7 +118,7 @@ const TemplateProfessional = ({ data }) => {
         )}
 
         {/* Certifications */}
-        {certifications?.length > 0 && (
+        {certifications && certifications.length > 0 && (
           <div className="mb-6">
             <h2 className="text-lg font-bold uppercase tracking-wider border-b border-gray-300 mb-4 pb-1 text-gray-800">
               Certifications
@@ -117,9 +130,11 @@ const TemplateProfessional = ({ data }) => {
                     <h3 className="font-bold text-gray-900">{cert.name}</h3>
                     <p className="text-sm text-gray-700 font-sans uppercase tracking-wide text-xs mt-0.5">{cert.issuer}</p>
                   </div>
-                  {cert.date && <span className="text-sm font-sans text-gray-500 italic">
-                    {cert.date}
-                  </span>}
+                  {cert.date && (
+                    <span className="text-sm font-sans text-gray-500 italic">
+                      {cert.date}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -128,24 +143,24 @@ const TemplateProfessional = ({ data }) => {
 
         <div className="grid grid-cols-2 gap-8">
           {/* Skills */}
-          {skills?.length > 0 && (
+          {skills && skills.length > 0 && (
             <div>
               <h2 className="text-lg font-bold uppercase tracking-wider border-b border-gray-300 mb-3 pb-1 text-gray-800">
                 Skills & Expertise
               </h2>
-              <div className="text-sm font-sans text-gray-700 leading-relaxed">
+              <div className="text-sm font-sans text-gray-700 leading-relaxed uppercase tracking-wider">
                 {skills.join(' • ')}
               </div>
             </div>
           )}
 
           {/* Languages */}
-          {languages?.length > 0 && (
+          {languages && languages.length > 0 && (
             <div>
               <h2 className="text-lg font-bold uppercase tracking-wider border-b border-gray-300 mb-3 pb-1 text-gray-800">
                 Languages
               </h2>
-              <div className="text-sm font-sans text-gray-700 leading-relaxed">
+              <div className="text-sm font-sans text-gray-700 leading-relaxed uppercase tracking-wider">
                 {languages.map(l => l.name).join(' • ')}
               </div>
             </div>

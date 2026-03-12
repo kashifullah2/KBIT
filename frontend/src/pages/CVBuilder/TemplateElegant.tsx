@@ -1,12 +1,17 @@
 import React from 'react';
 import { Mail, Phone, MapPin, Linkedin, Github } from 'lucide-react';
+import { TemplateProps } from './types';
 
-const TemplateElegant = ({ data }) => {
+/**
+ * Elegant CV Template
+ * A minimalist, typography-focused design with a spacious and balanced layout.
+ */
+const TemplateElegant: React.FC<TemplateProps> = ({ data }) => {
   const { personalInfo, experience, education, skills, certifications, languages } = data;
 
   return (
     <div className="flex flex-col w-full h-full bg-[#FAFAFA] text-slate-800 p-16 font-sans">
-      
+
       {/* Header Info */}
       <div className="mb-10 w-full text-center">
         <h1 className="text-5xl font-light tracking-[0.1em] text-slate-900 mb-3 uppercase">
@@ -15,22 +20,41 @@ const TemplateElegant = ({ data }) => {
         <p className="text-sm font-semibold tracking-[0.2em] text-slate-500 uppercase mb-5">
           {personalInfo.jobTitle}
         </p>
-        
+
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs font-medium text-slate-600 tracking-wide">
-          {personalInfo.email && <span className="flex items-center gap-1.5"><Mail size={12} className="text-slate-400" />{personalInfo.email}</span>}
-          {personalInfo.phone && <span className="flex items-center gap-1.5"><Phone size={12} className="text-slate-400" />{personalInfo.phone}</span>}
-          {personalInfo.address && <span className="flex items-center gap-1.5"><MapPin size={12} className="text-slate-400" />{personalInfo.address}</span>}
+          {personalInfo.email && (
+            <span className="flex items-center gap-1.5 break-all">
+              <Mail size={12} className="text-slate-400 shrink-0" />
+              {personalInfo.email}
+            </span>
+          )}
+          {personalInfo.phone && (
+            <span className="flex items-center gap-1.5">
+              <Phone size={12} className="text-slate-400 shrink-0" />
+              {personalInfo.phone}
+            </span>
+          )}
+          {personalInfo.address && (
+            <span className="flex items-center gap-1.5 break-words max-w-[300px]">
+              <MapPin size={12} className="text-slate-400 shrink-0" />
+              {personalInfo.address}
+            </span>
+          )}
           {personalInfo.linkedin && (
-             <span className="flex items-center gap-1.5 hover:text-slate-900 transition-colors">
-               <Linkedin size={12} className="text-slate-400" />
-               <a href={personalInfo.linkedin}>{personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}</a>
-             </span>
+            <span className="flex items-center gap-1.5 hover:text-slate-900 transition-colors">
+              <Linkedin size={12} className="text-slate-400 shrink-0" />
+              <a href={personalInfo.linkedin} target="_blank" rel="noopener noreferrer">
+                {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}
+              </a>
+            </span>
           )}
           {personalInfo.github && (
-             <span className="flex items-center gap-1.5 hover:text-slate-900 transition-colors">
-               <Github size={12} className="text-slate-400" />
-               <a href={personalInfo.github}>github.com/{personalInfo.github.split('/').pop()}</a>
-             </span>
+            <span className="flex items-center gap-1.5 hover:text-slate-900 transition-colors">
+              <Github size={12} className="text-slate-400 shrink-0" />
+              <a href={personalInfo.github} target="_blank" rel="noopener noreferrer">
+                github.com/{personalInfo.github.split('/').pop()}
+              </a>
+            </span>
           )}
         </div>
       </div>
@@ -38,7 +62,7 @@ const TemplateElegant = ({ data }) => {
       <div className="w-full h-px bg-slate-200 mb-10"></div>
 
       <div className="flex-1 flex flex-col gap-10">
-        
+
         {/* Professional Summary */}
         {personalInfo.summary && (
           <section>
@@ -50,7 +74,7 @@ const TemplateElegant = ({ data }) => {
         )}
 
         {/* Experience */}
-        {experience.length > 0 && (
+        {experience && experience.length > 0 && (
           <section>
             <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-6">Experience</h2>
             <div className="space-y-8 pl-1">
@@ -58,25 +82,25 @@ const TemplateElegant = ({ data }) => {
                 <div key={i} className="group break-inside-avoid">
                   <div className="flex justify-between items-baseline mb-1.5">
                     <h3 className="text-base font-semibold text-slate-900">{exp.title}</h3>
-                    <span className="text-xs font-medium text-slate-500 tracking-widest uppercase">
+                    <span className="text-xs font-medium text-slate-500 tracking-widest uppercase ml-4 shrink-0">
                       {exp.startDate} {exp.endDate ? `— ${exp.endDate}` : ''}
                     </span>
                   </div>
-                  <h4 className="text-sm font-medium text-slate-600 mb-3">{exp.company}</h4>
-                  <div className="text-sm text-slate-700 font-light leading-relaxed pl-4 border-l border-slate-200 list-outside">
+                  <h4 className="text-sm font-medium text-slate-600 mb-3 uppercase tracking-wide">{exp.company}</h4>
+                  <div className="text-sm text-slate-700 font-light leading-relaxed pl-4 border-l border-slate-200">
                     {exp.description?.split('\n')
                       .map(line => line.trim())
                       .filter(Boolean)
                       .map((line, j) => {
-                      const text = line.replace(/^- /,'');
-                      if(!text) return null;
-                      return (
-                        <div key={j} className="flex gap-2.5 mb-2 break-words whitespace-pre-wrap">
-                          {line.startsWith('-') && <span className="text-slate-300 font-black mt-0.5 shrink-0">·</span>}
-                          <span>{text}</span>
-                        </div>
-                      );
-                    })}
+                        const text = line.replace(/^- /, '');
+                        if (!text) return null;
+                        return (
+                          <div key={j} className="flex gap-2.5 mb-2 break-words whitespace-pre-wrap">
+                            {line.startsWith('-') && <span className="text-slate-300 font-black mt-0.5 shrink-0">·</span>}
+                            <span>{text}</span>
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
               ))}
@@ -86,10 +110,10 @@ const TemplateElegant = ({ data }) => {
 
         {/* Two Column Footer Split */}
         <div className="grid grid-cols-2 gap-12 pt-4 border-t border-slate-200 mt-auto">
-          
+
           <div className="space-y-10">
             {/* Education */}
-            {education.length > 0 && (
+            {education && education.length > 0 && (
               <section>
                 <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-5">Education</h2>
                 <div className="space-y-4">
@@ -105,7 +129,7 @@ const TemplateElegant = ({ data }) => {
             )}
 
             {/* Certifications */}
-            {certifications?.length > 0 && (
+            {certifications && certifications.length > 0 && (
               <section>
                 <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-5">Certifications</h2>
                 <div className="space-y-4">
@@ -123,12 +147,12 @@ const TemplateElegant = ({ data }) => {
 
           <div className="space-y-10">
             {/* Skills */}
-            {skills?.length > 0 && (
+            {skills && skills.length > 0 && (
               <section>
                 <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-5">Expertise</h2>
                 <div className="flex flex-wrap gap-2">
                   {skills.map((skill, i) => (
-                    <span key={i} className="px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-medium rounded block border border-slate-200">
+                    <span key={i} className="px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-medium rounded block border border-slate-200 uppercase tracking-widest">
                       {skill}
                     </span>
                   ))}
@@ -137,12 +161,12 @@ const TemplateElegant = ({ data }) => {
             )}
 
             {/* Languages */}
-            {languages?.length > 0 && (
+            {languages && languages.length > 0 && (
               <section>
                 <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-5">Languages</h2>
                 <div className="flex flex-col gap-3">
                   {languages.map((lang, i) => (
-                    <div key={i} className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <div key={i} className="text-sm font-medium text-slate-700 flex items-center gap-2 uppercase tracking-widest">
                       <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
                       {lang.name}
                     </div>

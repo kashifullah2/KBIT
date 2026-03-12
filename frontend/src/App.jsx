@@ -8,6 +8,8 @@ import { CVEditor } from './pages/CVBuilder/Editor';
 
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
+import PDFMerger from './pages/PDFMerger';
+import AIAssistant from './pages/AIAssistant';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 const ProtectedRoute = ({ children }) => {
@@ -32,6 +34,8 @@ function App() {
                 <Route index element={<CVGallery />} />
                 <Route path="edit" element={<CVEditor />} />
               </Route>
+              <Route path="pdf-merger" element={<PDFMerger />} />
+              <Route path="ai-assistant" element={<AIAssistant />} />
 
               <Route path="login" element={<Login />} />
               <Route path="signup" element={<Signup />} />

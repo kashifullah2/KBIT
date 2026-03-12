@@ -3,19 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import useCVStore from '../../store/useCVStore';
 import { CheckCircle2 } from 'lucide-react';
 
-const CVGallery = () => {
+interface Template {
+  id: string;
+  name: string;
+  image: string;
+  tag: string;
+}
+
+const CVGallery: React.FC = () => {
   const navigate = useNavigate();
   const setTemplate = useCVStore((state) => state.setTemplate);
   const selectedTemplate = useCVStore((state) => state.selectedTemplate);
   
-  const templates = [
+  const templates: Template[] = [
     { id: 'modern', name: 'Modern', image: '/thumbnails/modern.png', tag: 'Most Popular' },
     { id: 'professional', name: 'Professional', image: '/thumbnails/professional.png', tag: 'ATS Optimized' },
     { id: 'creative', name: 'Creative', image: '/thumbnails/creative.png', tag: 'Stand Out' },
     { id: 'elegant', name: 'Elegant', image: '/thumbnails/elegant.png', tag: 'Minimalist' }
   ];
 
-  const handleSelect = (templateId) => {
+  const handleSelect = (templateId: string) => {
     setTemplate(templateId);
     navigate('/cv-builder/edit');
   };

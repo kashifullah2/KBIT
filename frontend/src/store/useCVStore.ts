@@ -1,6 +1,33 @@
 import { create } from 'zustand';
+import { CVData, CustomField } from '../pages/CVBuilder/types';
 
-const defaultCVData = {
+export interface CVStore {
+  cvData: CVData;
+  selectedTemplate: string;
+  updatePersonalInfo: (data: Partial<CVData['personalInfo']>) => void;
+  addExperience: (exp: CVData['experience'][0]) => void;
+  updateExperience: (index: number, data: Partial<CVData['experience'][0]>) => void;
+  removeExperience: (index: number) => void;
+  addEducation: (edu: CVData['education'][0]) => void;
+  updateEducation: (index: number, data: Partial<CVData['education'][0]>) => void;
+  removeEducation: (index: number) => void;
+  setSkills: (skills: string[]) => void;
+  addCertification: (cert: CVData['certifications'][0]) => void;
+  updateCertification: (index: number, data: Partial<CVData['certifications'][0]>) => void;
+  removeCertification: (index: number) => void;
+  addLanguage: (lang: CVData['languages'][0]) => void;
+  updateLanguage: (index: number, data: Partial<CVData['languages'][0]>) => void;
+  removeLanguage: (index: number) => void;
+  setTemplate: (templateId: string) => void;
+  setCVData: (data: CVData) => void;
+  loadDummyData: () => void;
+  clearData: () => void;
+  addCustomField: (field: CustomField) => void;
+  updateCustomField: (index: number, data: Partial<CustomField>) => void;
+  removeCustomField: (index: number) => void;
+}
+
+const defaultCVData: CVData = {
   personalInfo: {
     firstName: '',
     lastName: '',
@@ -20,7 +47,7 @@ const defaultCVData = {
   customFields: [],
 };
 
-const dummyCVData = {
+const dummyCVData: CVData = {
   personalInfo: {
     firstName: 'Alex',
     lastName: 'Chen',
@@ -80,9 +107,10 @@ const dummyCVData = {
     { name: 'Mandarin (Bilingual)' },
     { name: 'Spanish (Conversational)' }
   ],
+  customFields: [],
 };
 
-const useCVStore = create((set) => ({
+const useCVStore = create<CVStore>((set) => ({
   cvData: defaultCVData,
   selectedTemplate: 'modern', // 'modern', 'professional', 'creative'
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Sparkles, LayoutTemplate, FileText, LogOut, Lightbulb, Menu, X, TrendingUp, Trophy } from 'lucide-react';
+import { Sparkles, LayoutTemplate, FileText, LogOut, Lightbulb, Menu, X, TrendingUp, Trophy, Library, Bot } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export function Header() {
@@ -35,6 +35,10 @@ export function Header() {
 
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex items-center gap-1">
+                        <NavLink to="/ai-assistant" className={navLinkClass}>
+                            <Bot className="w-4 h-4" />
+                            AI Assistant
+                        </NavLink>
                         <NavLink to="/extractor" className={navLinkClass}>
                             <LayoutTemplate className="w-4 h-4" />
                             Extractor
@@ -42,6 +46,10 @@ export function Header() {
                         <NavLink to="/cv-builder" className={navLinkClass}>
                             <FileText className="w-4 h-4" />
                             CV Builder
+                        </NavLink>
+                        <NavLink to="/pdf-merger" className={navLinkClass}>
+                            <Library className="w-4 h-4" />
+                            PDF Merger
                         </NavLink>
 
                     </nav>
@@ -93,6 +101,10 @@ export function Header() {
             {mobileMenuOpen && (
                 <div className="md:hidden bg-white border-t border-slate-200 shadow-lg">
                     <nav className="py-2">
+                        <NavLink to="/ai-assistant" className={mobileNavLinkClass} onClick={() => setMobileMenuOpen(false)}>
+                            <Bot className="w-5 h-5" />
+                            AI Assistant
+                        </NavLink>
                         <NavLink to="/extractor" className={mobileNavLinkClass} onClick={() => setMobileMenuOpen(false)}>
                             <LayoutTemplate className="w-5 h-5" />
                             Extractor
@@ -100,6 +112,10 @@ export function Header() {
                         <NavLink to="/cv-builder" className={mobileNavLinkClass} onClick={() => setMobileMenuOpen(false)}>
                             <FileText className="w-5 h-5" />
                             CV Builder
+                        </NavLink>
+                        <NavLink to="/pdf-merger" className={mobileNavLinkClass} onClick={() => setMobileMenuOpen(false)}>
+                            <Library className="w-5 h-5" />
+                            PDF Merger
                         </NavLink>
 
                     </nav>
