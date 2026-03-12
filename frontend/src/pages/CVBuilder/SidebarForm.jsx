@@ -1,0 +1,501 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import useCVStore from '../../store/useCVStore';
+import { User, Briefcase, GraduationCap, Wrench, FileText, ChevronDown, Plus, Trash2, Wand2, Loader2, Check } from 'lucide-react';
+import axios from 'axios';
+
+const MD3Input = ({ label, name, value, onChange, type = "text", ...props }) => (
+  <div className="relative w-full">
+    <input
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      className="block px-4 pb-2.5 pt-5 w-full text-base text-slate-900 bg-transparent rounded-xl border-2 border-slate-200 appearance-none focus:outline-none focus:border-blue-600 peer transition-colors hover:border-slate-300 hover:bg-slate-50/50 focus:bg-white"
+      placeholder=" "
+      {...props}
+    />
+    <label className="absolute text-slate-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] px-2 left-2 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3 pointer-events-none peer-focus:bg-white bg-white peer-[&:not(:placeholder-shown)]:bg-white peer-[&:not(:placeholder-shown)]:-translate-y-3 peer-[&:not(:placeholder-shown)]:scale-75">
+      {label}
+    </label>
+  </div>
+);
+
+const MD3TextArea = ({ label, name, value, onChange, rows = 5, ...props }) => (
+  <div className="relative w-full h-full">
+    <textarea
+      name={name}
+      value={value}
+      onChange={onChange}
+      rows={rows}
+      className="block px-4 pb-2.5 pt-5 w-full text-base text-slate-900 bg-transparent rounded-xl border-2 border-slate-200 appearance-none focus:outline-none focus:border-blue-600 peer transition-colors resize-y hover:border-slate-300 hover:bg-slate-50/50 focus:bg-white min-h-[120px]"
+      placeholder=" "
+      {...props}
+    />
+    <label className="absolute text-slate-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] px-2 left-2 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3 pointer-events-none peer-focus:bg-white bg-white peer-[&:not(:placeholder-shown)]:bg-white peer-[&:not(:placeholder-shown)]:-translate-y-3 peer-[&:not(:placeholder-shown)]:scale-75">
+      {label}
+    </label>
+  </div>
+);
+
+const AccordionSection = ({ id, title, icon: Icon, isOpen, onToggle, children }) => (
+  <div className={`bg-white border-b border-slate-200 last:border-b-0 transition-all duration-300 overflow-hidden`}>
+    <button 
+      onClick={onToggle}
+      className={`w-full flex items-center justify-between py-6 px-4 transition-colors hover:bg-slate-50`}
+    >
+      <h3 className={`text-[1.1rem] font-bold tracking-tight transition-colors ${isOpen ? 'text-slate-800' : 'text-slate-600'}`}>
+        {title}
+      </h3>
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 border ${isOpen ? 'border-slate-300 bg-white shadow-sm' : 'border-slate-200 bg-white'}`}>
+        <ChevronDown size={16} className={`transition-transform duration-300 ${isOpen ? 'rotate-180 text-slate-800' : 'text-slate-500'}`} />
+      </div>
+    </button>
+    
+    <AnimatePresence initial={false}>
+      {isOpen && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] }}
+        >
+          <div className="pb-6 pt-2 px-2">
+             {children}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </div>
+);
+
+const SidebarForm = () => {
+  const [openSection, setOpenSection] = useState('personal');
+  const cvData = useCVStore((state) => state.cvData);
+  const updatePersonalInfo = useCVStore((state) => state.updatePersonalInfo);
+  const addExperience = useCVStore((state) => state.addExperience);
+  const updateExperience = useCVStore((state) => state.updateExperience);
+  const removeExperience = useCVStore((state) => state.removeExperience);
+  const addEducation = useCVStore((state) => state.addEducation);
+  const updateEducation = useCVStore((state) => state.updateEducation);
+  const removeEducation = useCVStore((state) => state.removeEducation);
+  const setSkills = useCVStore((state) => state.setSkills);
+  const addCertification = useCVStore((state) => state.addCertification);
+  const updateCertification = useCVStore((state) => state.updateCertification);
+  const removeCertification = useCVStore((state) => state.removeCertification);
+  const addLanguage = useCVStore((state) => state.addLanguage);
+  const updateLanguage = useCVStore((state) => state.updateLanguage);
+  const removeLanguage = useCVStore((state) => state.removeLanguage);
+  const addCustomField = useCVStore((state) => state.addCustomField);
+  const updateCustomField = useCVStore((state) => state.updateCustomField);
+  const removeCustomField = useCVStore((state) => state.removeCustomField);
+  const loadDummyData = useCVStore((state) => state.loadDummyData);
+  const clearData = useCVStore((state) => state.clearData);
+
+  const [isGenerating, setIsGenerating] = useState({});
+
+  const toggleSection = (id) => {
+    setOpenSection(openSection === id ? null : id);
+  };
+
+  const sections = [
+    { id: 'personal', title: 'Personal Details', icon: User },
+    { id: 'experience', title: 'Employment', icon: Briefcase },
+    { id: 'education', title: 'Education', icon: GraduationCap },
+    { id: 'skills', title: 'Skills', icon: Wrench },
+    { id: 'summary', title: 'Professional Summary', icon: FileText },
+  ];
+
+  const handlePersonalChange = (e) => {
+    updatePersonalInfo({ [e.target.name]: e.target.value });
+  };
+
+  const handleMagicWrite = async (index, jobTitle) => {
+    if (!jobTitle) {
+      alert("Please enter a job title first.");
+      return;
+    }
+
+    setIsGenerating({ ...isGenerating, [index]: true });
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/cv/improve`, {
+        text: `Generate 3 professional, active, action-driven resume bullet points for a ${jobTitle}. Do not include a preamble or conclusion, just the 3 bullet points starting with a dash.`,
+        section: "experience"
+      });
+
+      const newDescription = response.data.improved_text;
+      updateExperience(index, { description: newDescription });
+
+    } catch (error) {
+      console.error("Magic write failed:", error);
+      alert("Failed to generate text. Please try again.");
+    } finally {
+      setIsGenerating({ ...isGenerating, [index]: false });
+    }
+  };
+
+  return (
+    <div className="h-full flex flex-col bg-slate-50/30 overflow-hidden">
+      
+      {/* Form Content Area */}
+      <div className="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6 lg:p-8 relative">
+        <div className="w-full max-w-4xl mx-auto">
+          
+          <div className="mb-6 px-2 flex gap-4 border-b border-slate-200 pb-6 mt-4">
+            <button 
+              onClick={clearData}
+              className="flex-1 py-3 bg-white border border-red-200 text-red-600 rounded-xl text-sm font-bold hover:bg-red-50 hover:border-red-300 transition-colors shadow-sm flex items-center justify-center gap-2"
+            >
+              <Trash2 size={16} />
+              Clear Form
+            </button>
+            <button 
+              onClick={loadDummyData}
+              className="flex-1 py-3 bg-white border border-teal-200 text-teal-700 rounded-xl text-sm font-bold hover:bg-teal-50 hover:border-teal-300 transition-colors shadow-sm flex items-center justify-center gap-2"
+            >
+              <Wand2 size={16} />
+              Load Example
+            </button>
+          </div>
+
+          <div className="space-y-0 px-2">
+            {/* PERSONAL INFO ACCORDION */}
+            <AccordionSection 
+              id="personal" 
+              title="Personal Details" 
+              icon={User} 
+              isOpen={openSection === 'personal'} 
+              onToggle={() => toggleSection('personal')}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                <MD3Input label="First Name" name="firstName" value={cvData.personalInfo.firstName} onChange={handlePersonalChange} />
+                <MD3Input label="Last Name" name="lastName" value={cvData.personalInfo.lastName} onChange={handlePersonalChange} />
+                <div className="md:col-span-2">
+                  <MD3Input label="Desired Job Title" name="jobTitle" value={cvData.personalInfo.jobTitle} onChange={handlePersonalChange} />
+                </div>
+                <MD3Input label="Email Address" type="email" name="email" value={cvData.personalInfo.email} onChange={handlePersonalChange} />
+                <MD3Input label="Phone Number" name="phone" value={cvData.personalInfo.phone} onChange={handlePersonalChange} />
+                <MD3Input label="Location (City, State)" name="address" value={cvData.personalInfo.address} onChange={handlePersonalChange} />
+                <MD3Input label="LinkedIn Profile" name="linkedin" value={cvData.personalInfo.linkedin} onChange={handlePersonalChange} />
+                <MD3Input label="GitHub Profile" name="github" value={cvData.personalInfo.github} onChange={handlePersonalChange} />
+              </div>
+            </AccordionSection>
+
+            {/* EXPERIENCE ACCORDION */}
+            <AccordionSection 
+              id="experience" 
+              title="Employment History" 
+              icon={Briefcase} 
+              isOpen={openSection === 'experience'} 
+              onToggle={() => toggleSection('experience')}
+            >
+              <div className="space-y-8 pt-4">
+                <AnimatePresence>
+                  {cvData.experience.map((exp, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="p-6 border border-slate-200/60 rounded-2xl relative group bg-white shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <button
+                        onClick={() => removeExperience(index)}
+                        className="absolute -top-3 -right-3 bg-white text-red-500 hover:text-red-700 hover:bg-red-50 p-2.5 rounded-full shadow-sm border border-slate-100 transition-all opacity-0 group-hover:opacity-100"
+                        title="Delete Experience"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <MD3Input label="Job Title" value={exp.title || ''} onChange={(e) => updateExperience(index, { title: e.target.value })} />
+                        <MD3Input label="Employer / Company" value={exp.company || ''} onChange={(e) => updateExperience(index, { company: e.target.value })} />
+
+                        <MD3Input label="Start Date" value={exp.startDate || ''} onChange={(e) => updateExperience(index, { startDate: e.target.value })} />
+                        <MD3Input label="End Date" value={exp.endDate || ''} onChange={(e) => updateExperience(index, { endDate: e.target.value })} />
+
+                        <div className="md:col-span-2 mt-2">
+                          <div className="flex justify-between items-center mb-3">
+                            <span className="text-sm font-medium text-slate-700 ml-1">Responsibilities & Achievements</span>
+                            <button
+                              type="button"
+                              onClick={() => handleMagicWrite(index, exp.title)}
+                              disabled={isGenerating[index]}
+                              className="flex items-center gap-1.5 text-xs text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-full transition-colors font-semibold shadow-sm border border-indigo-100/50 uppercase tracking-wider disabled:opacity-50"
+                            >
+                              {isGenerating[index] ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
+                              {isGenerating[index] ? 'Writing...' : 'Magic Write'}
+                            </button>
+                          </div>
+                          <MD3TextArea
+                            label="Job Description"
+                            value={exp.description || ''}
+                            onChange={(e) => updateExperience(index, { description: e.target.value })}
+                            rows={6}
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+
+                <button
+                  onClick={() => addExperience({ title: '', company: '', startDate: '', endDate: '', description: '' })}
+                  className="w-full py-4 flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 text-slate-600 bg-white rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all font-medium text-sm mt-2"
+                >
+                  <Plus size={18} /> Add another employment
+                </button>
+              </div>
+            </AccordionSection>
+
+            {/* EDUCATION ACCORDION */}
+            <AccordionSection 
+              id="education" 
+              title="Education" 
+              icon={GraduationCap} 
+              isOpen={openSection === 'education'} 
+              onToggle={() => toggleSection('education')}
+            >
+              <div className="space-y-8 pt-4">
+                <AnimatePresence>
+                  {cvData.education.map((edu, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="p-6 border border-slate-200/60 rounded-2xl relative group bg-white shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <button
+                        onClick={() => removeEducation(index)}
+                        className="absolute -top-3 -right-3 bg-white text-red-500 hover:text-red-700 hover:bg-red-50 p-2.5 rounded-full shadow-sm border border-slate-100 transition-all opacity-0 group-hover:opacity-100"
+                        title="Delete Education"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <MD3Input label="Degree / Program" value={edu.degree || ''} onChange={(e) => updateEducation(index, { degree: e.target.value })} />
+                        <MD3Input label="Institution / School" value={edu.school || ''} onChange={(e) => updateEducation(index, { school: e.target.value })} />
+                        <MD3Input label="Start Date" value={edu.startDate || ''} onChange={(e) => updateEducation(index, { startDate: e.target.value })} />
+                        <MD3Input label="End Date" value={edu.endDate || ''} onChange={(e) => updateEducation(index, { endDate: e.target.value })} />
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+
+                <button
+                  onClick={() => addEducation({ degree: '', school: '', startDate: '', endDate: '' })}
+                  className="w-full py-4 flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 text-slate-600 bg-white rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all font-medium text-sm mt-2"
+                >
+                  <Plus size={18} /> Add another education
+                </button>
+              </div>
+            </AccordionSection>
+
+            {/* CERTIFICATIONS ACCORDION */}
+            <AccordionSection 
+              id="certifications" 
+              title="Certifications" 
+              icon={FileText} 
+              isOpen={openSection === 'certifications'} 
+              onToggle={() => toggleSection('certifications')}
+            >
+              <div className="space-y-8 pt-4">
+                <AnimatePresence>
+                  {cvData.certifications.map((cert, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="p-6 border border-slate-200/60 rounded-2xl relative group bg-white shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <button
+                        onClick={() => removeCertification(index)}
+                        className="absolute -top-3 -right-3 bg-white text-red-500 hover:text-red-700 hover:bg-red-50 p-2.5 rounded-full shadow-sm border border-slate-100 transition-all opacity-0 group-hover:opacity-100"
+                        title="Delete Certification"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <MD3Input label="Certification Name" value={cert.name || ''} onChange={(e) => updateCertification(index, { name: e.target.value })} />
+                        <MD3Input label="Issuing Organization" value={cert.issuer || ''} onChange={(e) => updateCertification(index, { issuer: e.target.value })} />
+                        <MD3Input label="Date Earned" value={cert.date || ''} onChange={(e) => updateCertification(index, { date: e.target.value })} />
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+
+                <button
+                  onClick={() => addCertification({ name: '', issuer: '', date: '' })}
+                  className="w-full py-4 flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 text-slate-600 bg-white rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all font-medium text-sm mt-2"
+                >
+                  <Plus size={18} /> Add another certification
+                </button>
+              </div>
+            </AccordionSection>
+
+            {/* LANGUAGES ACCORDION */}
+            <AccordionSection 
+              id="languages" 
+              title="Languages" 
+              icon={FileText} 
+              isOpen={openSection === 'languages'} 
+              onToggle={() => toggleSection('languages')}
+            >
+              <div className="space-y-4 pt-4">
+                <AnimatePresence>
+                  {cvData.languages.map((lang, index) => (
+                     <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="flex items-center gap-4 relative group"
+                    >
+                      <MD3Input label={`Language ${index + 1}`} value={lang.name || ''} onChange={(e) => updateLanguage(index, { name: e.target.value })} />
+                      <button
+                        onClick={() => removeLanguage(index)}
+                        className="bg-white text-red-500 hover:text-red-700 hover:bg-red-50 p-3 rounded-xl shadow-sm border border-slate-200 transition-all"
+                        title="Delete Language"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+
+                <button
+                  onClick={() => addLanguage({ name: '', level: '' })}
+                  className="w-full py-4 flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 text-slate-600 bg-white rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all font-medium text-sm mt-2"
+                >
+                  <Plus size={18} /> Add a language
+                </button>
+              </div>
+            </AccordionSection>
+
+            {/* SKILLS ACCORDION */}
+            <AccordionSection 
+              id="skills" 
+              title="Skills & Expertise" 
+              icon={Wrench} 
+              isOpen={openSection === 'skills'} 
+              onToggle={() => toggleSection('skills')}
+            >
+              <div className="space-y-4 pt-4">
+                <AnimatePresence>
+                  {cvData.skills.map((skill, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="flex items-center gap-4 relative group"
+                    >
+                      <MD3Input label={`Skill ${index + 1}`} value={skill || ''} onChange={(e) => {
+                          const newSkills = [...cvData.skills];
+                          newSkills[index] = e.target.value;
+                          setSkills(newSkills);
+                      }} />
+                      <button
+                        onClick={() => {
+                          const newSkills = cvData.skills.filter((_, i) => i !== index);
+                          setSkills(newSkills);
+                        }}
+                        className="bg-white text-red-500 hover:text-red-700 hover:bg-red-50 p-3 rounded-xl shadow-sm border border-slate-200 transition-all"
+                        title="Delete Skill"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+
+                <button
+                  onClick={() => setSkills([...cvData.skills, ''])}
+                  className="w-full py-4 flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 text-slate-600 bg-white rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all font-medium text-sm mt-2"
+                >
+                  <Plus size={18} /> Add a skill
+                </button>
+              </div>
+            </AccordionSection>
+
+            {/* SUMMARY ACCORDION */}
+            <AccordionSection 
+              id="summary" 
+              title="Professional Summary" 
+              icon={FileText} 
+              isOpen={openSection === 'summary'} 
+              onToggle={() => toggleSection('summary')}
+            >
+              <div className="space-y-6 pt-4">
+                <p className="text-slate-500 text-sm">Write a brief, punchy overview of your career and goals.</p>
+                <MD3TextArea
+                  label="Summary Text"
+                  name="summary"
+                  value={cvData.personalInfo.summary}
+                  onChange={handlePersonalChange}
+                  rows={8}
+                />
+              </div>
+            </AccordionSection>
+
+            {/* CUSTOM FIELDS ACCORDION */}
+            <AccordionSection
+              id="custom"
+              title="Custom Fields"
+              icon={FileText}
+              isOpen={openSection === 'custom'}
+              onToggle={() => toggleSection('custom')}
+            >
+              <div className="space-y-4 pt-4">
+                <p className="text-slate-500 text-sm px-1">Add any additional info you'd like on your CV — awards, websites, portfolios, etc.</p>
+                <AnimatePresence>
+                  {(cvData.customFields || []).map((field, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="flex flex-col gap-3 p-4 border border-slate-200/60 rounded-2xl relative group bg-white shadow-sm"
+                    >
+                      <button
+                        onClick={() => removeCustomField(index)}
+                        className="absolute -top-3 -right-3 bg-white text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-full shadow-sm border border-slate-100 transition-all opacity-0 group-hover:opacity-100"
+                        title="Delete Field"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <MD3Input
+                          label="Label (e.g. Portfolio)"
+                          value={field.label || ''}
+                          onChange={(e) => updateCustomField(index, { label: e.target.value })}
+                        />
+                        <MD3Input
+                          label="Value (e.g. my-site.com)"
+                          value={field.value || ''}
+                          onChange={(e) => updateCustomField(index, { value: e.target.value })}
+                        />
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                <button
+                  onClick={() => addCustomField({ label: '', value: '' })}
+                  className="w-full py-4 flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 text-slate-600 bg-white rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all font-medium text-sm mt-2"
+                >
+                  <Plus size={18} /> Add custom field
+                </button>
+              </div>
+            </AccordionSection>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SidebarForm;

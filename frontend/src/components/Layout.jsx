@@ -9,6 +9,7 @@ import { useLocation } from 'react-router-dom';
 export function Layout() {
     const location = useLocation();
     const isCVBuilder = location.pathname === '/cv-builder';
+    const isCVBuilderEdit = location.pathname === '/cv-builder/edit';
 
     return (
         <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900 font-sans text-slate-900 flex flex-col">
@@ -16,8 +17,8 @@ export function Layout() {
             <div className="relative z-10 flex flex-col flex-1">
                 <Header />
                 <main className={cn(
-                    "w-full mx-auto px-4 sm:px-6 lg:px-8 flex-1",
-                    isCVBuilder ? "overflow-hidden py-6" : "max-w-7xl py-10"
+                    "w-full flex-1",
+                    isCVBuilderEdit ? "px-0" : isCVBuilder ? "mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden py-6" : "mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-10"
                 )}>
                     <Outlet />
                 </main>

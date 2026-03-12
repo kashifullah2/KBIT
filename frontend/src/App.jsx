@@ -2,7 +2,9 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Extractor } from './pages/Extractor';
-import { CVBuilder } from './pages/CVBuilder';
+import CVBuilderRoot from './pages/CVBuilder/Root';
+import CVGallery from './pages/CVBuilder/Gallery';
+import { CVEditor } from './pages/CVBuilder/Editor';
 
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
@@ -26,7 +28,10 @@ function App() {
             <Route path="/" element={<Layout />}>
               <Route index element={<Home />} />
               <Route path="extractor" element={<Extractor />} />
-              <Route path="cv-builder" element={<CVBuilder />} />
+              <Route path="cv-builder" element={<CVBuilderRoot />}>
+                <Route index element={<CVGallery />} />
+                <Route path="edit" element={<CVEditor />} />
+              </Route>
 
               <Route path="login" element={<Login />} />
               <Route path="signup" element={<Signup />} />
