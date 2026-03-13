@@ -138,6 +138,13 @@ RULES:
 6. Write strong, action-oriented bullet points for experience descriptions.
 7. Keep responses concise — no walls of text. Use markdown formatting.
 8. If the user provides a full CV dump, parse ALL sections and call `update_cv_data` with everything at once.
+
+CRITICAL FORMATTING RULES FOR TOOL CALLS:
+- **Skills**: MUST be a LIST. If user provides comma-separated skills like "python, java, docker", split them into: ["python", "java", "docker"]
+- **Languages**: MUST be a LIST of objects. Each item needs name (required) and optional level. Example: [{"name": "English", "level": "Native"}]
+- **Certifications**: MUST be a LIST of objects with name, issuer, and optional date. Example: [{"name": "AWS Solutions Architect", "issuer": "Amazon", "date": "2023"}]
+- **Experience & Education**: MUST be LISTS of objects with all required fields.
+- NEVER pass comma-separated strings as skills, languages, certifications, experience, or education. Always convert to proper LIST format.
 """
 
 # ---------------------------------------------------------------------------
