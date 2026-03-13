@@ -6,16 +6,25 @@
 # Nginx and Gunicorn to serve the FastAPI backend and React frontend.
 # ==============================================================================
 
-# Exit immediately if a command exits with a non-zero status
-set -e
+# Strict error handling: exit on error, undefined vars, pipefail
+set -euo pipefail
 
-# Setup variables
-DB_USER="kashif"
-DB_PASS="1234"
+# Setup variables with security improvements
 DB_NAME="user_db"
+DB_USER="${DB_USER:-kbit_user}"
+DB_PASS="${DB_PASS:-$(openssl rand -base64 12 | tr -d '\n')}"
+
+# Generate secure password if not set
+if [ "$DB_PASS" = "1234" ]; then
+    DB_PASS=$(openssl rand -base64 12 | tr -d '\n')
+    echo "Generated secure DB password: $DB_PASS"
+fi
+
 APP_DIR=$(pwd)
 BACKEND_DIR="$APP_DIR/backend"
 FRONTEND_DIR="$APP_DIR/frontend"
+
+echo "DB_USER=$DB_USER, DB_PASS=[secure], DB_NAME=$DB_NAME"
 
 echo "========================================"
 echo " Starting KBIT Deployment Script"
@@ -28,8 +37,8 @@ echo ">>> Updating system and installing dependencies..."
 sudo apt update -y
 sudo apt upgrade -y
 
-# Install Nginx, PostgreSQL, Python 3 venv, Node.js, and OCR dependencies
-sudo apt install -y nginx postgresql postgresql-contrib python3 python3-venv python3-pip curl jq git lsof tesseract-ocr libtesseract-dev
+# Install dependencies including Certbot for HTTPS
+sudo apt install -y nginx postgresql postgresql-contrib python3 python3-venv python3-pip curl jq git lsof tesseract-ocr libtesseract-dev certbot python3-certbot-nginx
 
 # Install Node.js (Using NodeSource for latest LTS)
 if ! command -v node &> /dev/null; then
@@ -49,25 +58,26 @@ sudo npm install -g pm2
 #--------------------------------------------------
 echo ">>> Configuring PostgreSQL Database and Connection Pooling..."
 sudo apt install -y pgbouncer
-sudo systemctl start postgresql
+if ! systemctl is-active --quiet postgresql; then
+  sudo systemctl start postgresql
+fi
 sudo systemctl enable postgresql
 
-# Create Database and User if they don't exist
-sudo -u postgres psql -c "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1 || \
-sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASS';"
+# Create Database and User if they don't exist (idempotent)
+sudo -u postgres psql -c "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1 || sudo -u postgres psql -c "CREATE USER \"$DB_USER\" WITH PASSWORD '$DB_PASS';"
+sudo -u postgres psql -c "ALTER USER \"$DB_USER\" CREATEDB;"
 
-sudo -u postgres psql -c "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 || \
-sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
+sudo -u postgres psql -c "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 || sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER \"$DB_USER\";"
 
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
-sudo -u postgres psql -c "ALTER USER $DB_USER CREATEDB;"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO \"$DB_USER\";"
 
 # Configure PgBouncer
 echo ">>> Configuring PgBouncer for optimal connection pooling..."
-# Use MD5 password hashed natively by Postgres for PgBouncer auth
-MD5_PASS=$(sudo -u postgres psql -t -c "SELECT concat('\"', rolname, '\" \"', rolpassword, '\"') FROM pg_authid WHERE rolname='$DB_USER';")
+# PgBouncer auth: Use PostgreSQL's MD5 hash format
+MD5_PASS=$(sudo -u postgres psql -t -c "SELECT '\"' || rolname || '\" \"' || rolpassword FROM pg_authid WHERE rolname='$DB_USER';" | tr -d ' \n')
 
-sudo bash -c "echo '$MD5_PASS' > /etc/pgbouncer/userlist.txt"
+sudo bash -c "echo \"$MD5_PASS\" > /etc/pgbouncer/userlist.txt"
+echo "PgBouncer userlist configured with secure hash."
 
 sudo bash -c "cat > /etc/pgbouncer/pgbouncer.ini" <<EOF
 [databases]
@@ -83,7 +93,7 @@ max_client_conn = 500
 default_pool_size = 20
 EOF
 
-sudo systemctl restart pgbouncer
+sudo systemctl restart pgbouncer || sudo systemctl start pgbouncer
 sudo systemctl enable pgbouncer
 
 #--------------------------------------------------
@@ -108,19 +118,23 @@ pip install --upgrade pip
 pip install -r requirements.txt
 pip install gunicorn uvicorn  # Ensure Gunicorn and Uvicorn are installed
 
-# Generate .env file if it doesn't exist
-if [ ! -f ".env" ]; then
-    echo ">>> Creating a placeholder .env file in backend..."
-    cat <<EOF > .env
-# DB_URL points to PgBouncer connection pooler on port 6432 instead of native Postgres 5432
-DB_URL=postgresql://$DB_USER:$DB_PASS@localhost:6432/$DB_NAME
-# Replace these with your actual keys
+# Create .env.example if missing, copy to .env if .env missing
+if [ ! -f ".env.example" ]; then
+    cat <<EOF > .env.example
+DB_URL=postgresql://\${DB_USER}:\${DB_PASS}@localhost:6432/\${DB_NAME}
 GROQ_API_KEY=your_groq_api_key_here
 OPENROUTER_API_KEY=your_openrouter_api_key_here
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 FRONTEND_URL=*
 EOF
-    echo "⚠️  WARNING: Please edit $BACKEND_DIR/.env with your actual API keys."
+fi
+
+if [ ! -f ".env" ]; then
+    cp .env.example .env
+    echo ">>> Copied .env.example to .env. Please edit $BACKEND_DIR/.env with your actual API keys and DB creds:"
+    echo "DB_USER=$DB_USER"
+    echo "DB_PASS=$DB_PASS"
+    echo "DB_URL=postgresql://$DB_USER:$DB_PASS@localhost:6432/$DB_NAME"
 fi
 
 # Deactivate venv
@@ -161,7 +175,11 @@ WantedBy=multi-user.target
 EOF
 
 sudo systemctl daemon-reload
-sudo systemctl start kbit-backend
+if systemctl is-active --quiet kbit-backend; then
+  sudo systemctl restart kbit-backend
+else
+  sudo systemctl start kbit-backend
+fi
 sudo systemctl enable kbit-backend
 
 #--------------------------------------------------
@@ -226,9 +244,13 @@ if [ ! -L /etc/nginx/sites-enabled/kbit ]; then
 fi
 
 # Verify Nginx configuration and restart
-sudo nginx -t
-sudo systemctl restart nginx
-sudo systemctl enable nginx
+if sudo nginx -t; then
+  sudo systemctl restart nginx
+  sudo systemctl enable nginx
+else
+  echo "Nginx config test failed. Fix config and re-run."
+  exit 1
+fi
 
 # FIX: Nginx needs permission to read the frontend user directory
 echo ">>> Fixing frontend permissions for Nginx..."
@@ -238,11 +260,27 @@ sudo chown -R $ACTUAL_USER:www-data $FRONTEND_DIR/dist
 sudo chmod -R 755 $APP_DIR
 sudo usermod -a -G $ACTUAL_USER www-data
 
+# AWS Low-RAM Optimization: Add 1GB swap file if not exists (for t3.micro)
+if [ ! -f /swapfile ]; then
+  echo ">>> Adding 1GB swap for low-RAM EC2 instances..."
+  sudo fallocate -l 1G /swapfile
+  sudo chmod 600 /swapfile
+  sudo mkswap /swapfile
+  sudo swapon /swapfile
+  echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+fi
+
 echo "========================================"
 echo " Deployment Successfully Completed!"
 echo "========================================"
-echo "-> The frontend is running via Nginx on port 80"
-echo "-> The backend is running via Gunicorn on localhost:8000, proxied by Nginx"
-echo "-> Ensure your AWS Security Group allows inbound traffic on Port 80."
-echo "-> Do not forget to configure your API keys in $BACKEND_DIR/.env"
+echo "-> App running on http://localhost (Port 80)"
+echo "-> Backend: Gunicorn on localhost:8000"
+echo "-> Set API keys in $BACKEND_DIR/.env"
+echo ""
+read -p "Enter your domain (e.g. example.com) for HTTPS [skip for HTTP-only]: " DOMAIN
+if [ -n "$DOMAIN" ]; then
+  echo "Setting up HTTPS with Let's Encrypt..."
+  sudo certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --email admin@$DOMAIN || echo "Certbot failed, continuing with HTTP"
+fi
+echo "-> AWS: Open port 80/443 in Security Group."
 echo "========================================"
