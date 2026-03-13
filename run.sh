@@ -79,7 +79,7 @@ MD5_PASS=$(sudo -u postgres psql -t -c "SELECT '\"' || rolname || '\" \"' || rol
 sudo bash -c "echo \"$MD5_PASS\" > /etc/pgbouncer/userlist.txt"
 echo "PgBouncer userlist configured with secure hash."
 
-sudo bash -c "cat > /etc/pgbouncer/pgbouncer.ini" <<EOF
+cat << EOF | sudo tee /etc/pgbouncer/pgbouncer.ini > /dev/null
 [databases]
 $DB_NAME = host=127.0.0.1 port=5432 dbname=$DB_NAME
 
@@ -153,7 +153,7 @@ ACTUAL_USER=${SUDO_USER:-root}
 # Ensure the backend directory is absolutely resolved
 ABS_BACKEND_DIR=$(readlink -f $BACKEND_DIR)
 
-sudo bash -c "cat > $SERVICE_FILE" <<EOF
+cat << EOF | sudo tee $SERVICE_FILE > /dev/null
 [Unit]
 Description=Gunicorn instance to serve KBIT FastAPI Backend
 After=network.target
@@ -203,7 +203,7 @@ echo ">>> Configuring Nginx..."
 
 NGINX_CONF="/etc/nginx/sites-available/kbit"
 
-sudo bash -c "cat > $NGINX_CONF" <<EOF
+cat << EOF | sudo tee $NGINX_CONF > /dev/null
 server {
     listen 80;
     server_name _; 
