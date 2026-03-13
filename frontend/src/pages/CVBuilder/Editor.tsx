@@ -39,7 +39,7 @@ export const CVEditor: React.FC = () => {
         </button>
         <div className="h-6 w-px bg-slate-200 hidden sm:block" />
         <div className="flex gap-1.5 p-1 rounded-lg bg-slate-100/50">
-          {(['modern', 'professional', 'creative', 'elegant'] as const).map((t) => (
+          {(['modern', 'professional', 'creative', 'elegant', 'two-column'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTemplate(t)}
@@ -82,11 +82,12 @@ export const CVEditor: React.FC = () => {
           <div className="flex justify-center items-start">
             <div
               className="print-wrapper origin-top transition-transform duration-500 flex-shrink-0"
-              style={{
+                style={{
                 transform: 'scale(var(--cv-scale, 0.65))',
                 marginBottom: 'calc((var(--cv-scale, 0.65) - 1) * 297mm)',
                 width: '210mm',
-                height: '297mm',
+                minHeight: '297mm',
+                height: 'auto',
               } as React.CSSProperties}
             >
               <motion.div
@@ -94,7 +95,7 @@ export const CVEditor: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 className="bg-white rounded-sm shadow-[0_20px_60px_rgba(0,0,0,0.08),_0_0_0_1px_rgba(0,0,0,0.04)]"
-                style={{ width: '210mm', height: '297mm' }}
+                style={{ width: '210mm', minHeight: '297mm', height: 'auto' }}
               >
                 {/* ✅ FIX 1 applied: ref only attached to this one instance */}
                 <Templates ref={componentRef} />
@@ -134,16 +135,13 @@ export const CVEditor: React.FC = () => {
                       transform: 'scale(var(--cv-scale, 0.5))',
                       marginBottom: 'calc((var(--cv-scale, 0.5) - 1) * 297mm)',
                       width: '210mm',
-                      height: '297mm',
+                      minHeight: '297mm',
+                      height: 'auto',
                     } as React.CSSProperties}
                   >
-                    {/* ✅ FIX 3: Mobile uses a plain div wrapper (no ref) so the
-                        print ref stays exclusively on the desktop instance.
-                        Print always captures the desktop DOM node which is
-                        rendered at full fidelity — correct for PDF export. */}
                     <div
                       className="bg-white rounded-sm shadow-[0_20px_60px_rgba(0,0,0,0.08),_0_0_0_1px_rgba(0,0,0,0.04)]"
-                      style={{ width: '210mm', height: '297mm' }}
+                      style={{ width: '210mm', minHeight: '297mm', height: 'auto' }}
                     >
                       <Templates />
                     </div>

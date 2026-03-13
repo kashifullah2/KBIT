@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useCVStore from '../../store/useCVStore';
-import { User, Briefcase, GraduationCap, Wrench, FileText, ChevronDown, Plus, Trash2, Wand2, Loader2 } from 'lucide-react';
+import { User, Briefcase, GraduationCap, Wrench, FileText, ChevronDown, Plus, Trash2, Wand2, Loader2, Heart } from 'lucide-react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
 import { CVData, CustomField } from './types';
@@ -108,6 +108,10 @@ const SidebarForm: React.FC = () => {
   const addCustomField = useCVStore((state) => state.addCustomField);
   const updateCustomField = useCVStore((state) => state.updateCustomField);
   const removeCustomField = useCVStore((state) => state.removeCustomField);
+  const addProject = useCVStore((state) => state.addProject);
+  const updateProject = useCVStore((state) => state.updateProject);
+  const removeProject = useCVStore((state) => state.removeProject);
+  const setHobbies = useCVStore((state) => state.setHobbies);
   const loadDummyData = useCVStore((state) => state.loadDummyData);
   const clearData = useCVStore((state) => state.clearData);
 
@@ -118,6 +122,8 @@ const SidebarForm: React.FC = () => {
     certifications: [],
     languages: [],
     skills: [],
+    projects: [],
+    hobbies: [],
     customFields: [],
   });
 
@@ -145,6 +151,8 @@ const SidebarForm: React.FC = () => {
     ensureKeys('certifications', cvData.certifications.length);
     ensureKeys('languages', cvData.languages.length);
     ensureKeys('skills', cvData.skills.length);
+    ensureKeys('projects', (cvData.projects || []).length);
+    ensureKeys('hobbies', (cvData.hobbies || []).length);
     ensureKeys('customFields', (cvData.customFields || []).length);
   }, [
     cvData.experience.length,
@@ -152,6 +160,8 @@ const SidebarForm: React.FC = () => {
     cvData.certifications.length,
     cvData.languages.length,
     cvData.skills.length,
+    (cvData.projects || []).length,
+    (cvData.hobbies || []).length,
     (cvData.customFields || []).length,
   ]);
 
@@ -346,6 +356,59 @@ const SidebarForm: React.FC = () => {
               </div>
             </AccordionSection>
 
+            {/* PROJECTS ACCORDION */}
+            <AccordionSection 
+              id="projects" 
+              title="Personal Projects" 
+              icon={FileText} 
+              isOpen={openSection === 'projects'} 
+              onToggle={() => toggleSection('projects')}
+            >
+              <div className="space-y-8 pt-4">
+                <AnimatePresence>
+                  {(cvData.projects || []).map((proj, index) => (
+                    <motion.div
+                      key={itemKeys.projects[index] || `projects-${index}`}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="p-6 border border-slate-200/60 rounded-2xl relative group bg-white shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <button
+                        onClick={() => removeProject(index)}
+                        className="absolute -top-3 -right-3 bg-white text-red-500 hover:text-red-700 hover:bg-red-50 p-2.5 rounded-full shadow-sm border border-slate-100 transition-all opacity-0 group-hover:opacity-100"
+                        title="Delete Project"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <MD3Input label="Project Name" value={proj.name || ''} onChange={(e) => updateProject(index, { name: e.target.value })} />
+                        <MD3Input label="Project Link (URL)" value={proj.link || ''} onChange={(e) => updateProject(index, { link: e.target.value })} />
+                        <MD3Input label="Start Date" value={proj.startDate || ''} onChange={(e) => updateProject(index, { startDate: e.target.value })} />
+                        <MD3Input label="End Date" value={proj.endDate || ''} onChange={(e) => updateProject(index, { endDate: e.target.value })} />
+                        <div className="md:col-span-2">
+                          <MD3TextArea
+                            label="Project Description"
+                            value={proj.description || ''}
+                            onChange={(e) => updateProject(index, { description: e.target.value })}
+                            rows={4}
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+
+                <button
+                  onClick={() => addProject({ name: '', description: '', startDate: '', endDate: '', link: '' })}
+                  className="w-full py-4 flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 text-slate-600 bg-white rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all font-medium text-sm mt-2"
+                >
+                  <Plus size={18} /> Add another project
+                </button>
+              </div>
+            </AccordionSection>
+
             {/* CERTIFICATIONS ACCORDION */}
             <AccordionSection 
               id="certifications" 
@@ -495,6 +558,26 @@ const SidebarForm: React.FC = () => {
               </div>
             </AccordionSection>
 
+            {/* HOBBIES ACCORDION */}
+            <AccordionSection
+              id="hobbies"
+              title="Hobbies & Interests"
+              icon={Heart}
+              isOpen={openSection === 'hobbies'}
+              onToggle={() => toggleSection('hobbies')}
+            >
+              <div className="space-y-4 pt-4 px-1">
+                <MD3TextArea
+                  label="Hobbies & Interests"
+                  value={cvData.hobbies.join(', ')}
+                  onChange={(e) => setHobbies(e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
+                  placeholder="Photography, Chess, Traveling, etc."
+                  rows={4}
+                />
+                <p className="text-slate-400 text-[11px] italic">Separate your hobbies with commas.</p>
+              </div>
+            </AccordionSection>
+
             {/* CUSTOM FIELDS ACCORDION */}
             <AccordionSection
               id="custom"
@@ -512,35 +595,68 @@ const SidebarForm: React.FC = () => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="flex flex-col gap-3 p-4 border border-slate-200/60 rounded-2xl relative group bg-white shadow-sm"
+                      className="p-6 border border-slate-200/60 rounded-2xl relative group bg-white shadow-sm hover:shadow-md transition-shadow mb-4"
                     >
                       <button
                         onClick={() => removeCustomField(index)}
-                        className="absolute -top-3 -right-3 bg-white text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-full shadow-sm border border-slate-100 transition-all opacity-0 group-hover:opacity-100"
-                        title="Delete Field"
+                        className="absolute -top-3 -right-3 bg-white text-red-500 hover:text-red-700 hover:bg-red-50 p-2.5 rounded-full shadow-sm border border-slate-100 transition-all opacity-0 group-hover:opacity-100"
+                        title="Delete Entry"
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={16} />
                       </button>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="md:col-span-2">
+                          <MD3Input
+                            label="Title"
+                            value={field.title || ''}
+                            onChange={(e) => updateCustomField(index, { title: e.target.value })}
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <MD3Input
+                            label="Subtitle"
+                            value={field.subtitle || ''}
+                            onChange={(e) => updateCustomField(index, { subtitle: e.target.value })}
+                          />
+                        </div>
                         <MD3Input
-                          label="Label (e.g. Portfolio)"
-                          value={field.label || ''}
-                          onChange={(e) => updateCustomField(index, { label: e.target.value })}
+                          label="Start Date"
+                          value={field.startDate || ''}
+                          onChange={(e) => updateCustomField(index, { startDate: e.target.value })}
                         />
                         <MD3Input
-                          label="Value (e.g. my-site.com)"
-                          value={field.value || ''}
-                          onChange={(e) => updateCustomField(index, { value: e.target.value })}
+                          label="End Date"
+                          value={field.endDate || ''}
+                          onChange={(e) => updateCustomField(index, { endDate: e.target.value })}
                         />
+                        <MD3Input
+                          label="Location"
+                          value={field.location || ''}
+                          onChange={(e) => updateCustomField(index, { location: e.target.value })}
+                        />
+                        <MD3Input
+                          label="Link"
+                          value={field.link || ''}
+                          onChange={(e) => updateCustomField(index, { link: e.target.value })}
+                        />
+                        <div className="md:col-span-2">
+                          <MD3TextArea
+                            label="Description"
+                            value={field.description || ''}
+                            onChange={(e) => updateCustomField(index, { description: e.target.value })}
+                            rows={4}
+                          />
+                        </div>
                       </div>
                     </motion.div>
                   ))}
                 </AnimatePresence>
                 <button
-                  onClick={() => addCustomField({ label: '', value: '' })}
+                  onClick={() => addCustomField({})}
                   className="w-full py-4 flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 text-slate-600 bg-white rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all font-medium text-sm mt-2"
                 >
-                  <Plus size={18} /> Add custom field
+                  <Plus size={18} /> Add custom entry
                 </button>
               </div>
             </AccordionSection>

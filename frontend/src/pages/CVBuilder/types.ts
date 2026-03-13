@@ -19,6 +19,14 @@ export interface Experience {
   description: string;
 }
 
+export interface Project {
+  name: string;
+  description: string;
+  startDate?: string;
+  endDate?: string;
+  link?: string;
+}
+
 export interface Education {
   school: string;
   degree: string;
@@ -38,17 +46,24 @@ export interface Certification {
 }
 
 export interface CustomField {
-  label: string;
-  value: string;
+  title?: string;
+  subtitle?: string;
+  startDate?: string;
+  endDate?: string;
+  location?: string;
+  description?: string;
+  link?: string;
 }
 
 export interface CVData {
   personalInfo: PersonalInfo;
   experience: Experience[];
   education: Education[];
+  projects?: Project[];
   skills: string[];
   languages: Language[];
   certifications: Certification[];
+  hobbies: string[];
   customFields?: CustomField[];
 }
 

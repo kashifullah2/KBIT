@@ -4,6 +4,7 @@ import TemplateModern from './TemplateModern';
 import TemplateProfessional from './TemplateProfessional';
 import TemplateCreative from './TemplateCreative';
 import TemplateElegant from './TemplateElegant';
+import TemplateTwoColumn from './TemplateTwoColumn';
 
 const Templates = forwardRef<HTMLDivElement, {}>((_props, ref) => {
   const selectedTemplate = useCVStore((state) => state.selectedTemplate);
@@ -20,6 +21,9 @@ const Templates = forwardRef<HTMLDivElement, {}>((_props, ref) => {
       break;
     case 'elegant':
       TemplateComponent = TemplateElegant;
+      break;
+    case 'two-column':
+      TemplateComponent = TemplateTwoColumn;
       break;
     case 'modern':
     default:

@@ -7,10 +7,10 @@ import { TemplateProps } from './types';
  * A minimalist, typography-focused design with a spacious and balanced layout.
  */
 const TemplateElegant: React.FC<TemplateProps> = ({ data }) => {
-  const { personalInfo, experience, education, skills, certifications, languages, customFields = [] } = data;
+  const { personalInfo, experience, projects = [], education, skills, certifications, languages, customFields = [] } = data;
 
   return (
-    <div className="flex flex-col w-full h-full bg-[#FAFAFA] text-slate-800 p-16 font-sans">
+    <div className="flex flex-col w-full min-h-[297mm] bg-[#FAFAFA] text-slate-800 p-16 font-sans">
 
       {/* Header Info */}
       <div className="mb-10 w-full text-center">
@@ -108,6 +108,35 @@ const TemplateElegant: React.FC<TemplateProps> = ({ data }) => {
           </section>
         )}
 
+        {/* Projects */}
+        {projects && projects.length > 0 && (
+          <section>
+            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-6">Projects</h2>
+            <div className="space-y-8 pl-1">
+              {projects.map((proj, i) => (
+                <div key={i} className="group break-inside-avoid">
+                  <div className="flex justify-between items-baseline mb-1.5">
+                    <h3 className="text-base font-semibold text-slate-900">
+                      {proj.name}
+                      {proj.link && (
+                        <a href={proj.link} target="_blank" rel="noopener noreferrer" className="ml-3 text-slate-400 hover:text-slate-600 transition-colors">
+                          <span className="text-[10px] font-bold uppercase tracking-widest border border-slate-200 px-2 py-0.5 rounded">Link</span>
+                        </a>
+                      )}
+                    </h3>
+                    <span className="text-xs font-medium text-slate-500 tracking-widest uppercase ml-4 shrink-0">
+                      {proj.startDate} {proj.endDate ? `— ${proj.endDate}` : ''}
+                    </span>
+                  </div>
+                  <div className="text-sm text-slate-700 font-light leading-relaxed pl-4 border-l border-slate-100 whitespace-pre-wrap">
+                    {proj.description}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Two Column Footer Split */}
         <div className="grid grid-cols-2 gap-12 pt-4 border-t border-slate-200 mt-auto">
 
@@ -178,12 +207,33 @@ const TemplateElegant: React.FC<TemplateProps> = ({ data }) => {
             {/* Custom Fields */}
             {customFields && customFields.length > 0 && (
               <section>
-                <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-5">Additional Info</h2>
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-8 pl-1">
                   {customFields.map((field, i) => (
-                    <div key={i} className="text-sm text-slate-700 break-words">
-                      <span className="font-semibold uppercase tracking-wide text-slate-600">{field.label}: </span>
-                      <span className="font-light">{field.value}</span>
+                    <div key={i} className="group break-inside-avoid">
+                      {field.title && (
+                        <div className="flex justify-between items-baseline mb-1">
+                          <h3 className="text-sm font-semibold text-slate-900 leading-tight">
+                            {field.title}
+                            {field.link && (
+                              <a href={field.link} target="_blank" rel="noopener noreferrer" className="ml-2 text-slate-400 hover:text-slate-600 transition-colors">
+                                <span className="text-[9px] font-bold uppercase tracking-widest border border-slate-200 px-1.5 py-0.5 rounded">URL</span>
+                              </a>
+                            )}
+                          </h3>
+                        </div>
+                      )}
+                      {field.subtitle && <p className="text-xs font-medium text-slate-600 mb-1 uppercase tracking-wide">{field.subtitle}</p>}
+                      {(field.startDate || field.endDate) && (
+                        <p className="text-[10px] text-slate-400 mb-1 font-medium tracking-wide uppercase">
+                          {field.startDate} {field.endDate ? `— ${field.endDate}` : ''}
+                        </p>
+                      )}
+                      {field.location && <p className="text-[10px] text-slate-400 mb-1 italic">{field.location}</p>}
+                      {field.description && (
+                         <div className="text-[13px] text-slate-700 font-light leading-relaxed whitespace-pre-wrap mt-2">
+                           {field.description}
+                         </div>
+                      )}
                     </div>
                   ))}
                 </div>

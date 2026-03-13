@@ -7,14 +7,16 @@ const TemplateModern: React.FC<TemplateProps> = ({ data }) => {
     personalInfo = {} as TemplateProps['data']['personalInfo'],
     experience = [],
     education = [],
+    projects = [],
     skills = [],
     certifications = [],
     languages = [],
+    hobbies = [],
     customFields = []
   } = data || {} as TemplateProps['data'];
 
   return (
-    <div className="w-[210mm] h-[297mm] bg-white font-sans text-gray-800 flex">
+    <div className="w-[210mm] min-h-[297mm] bg-white font-sans text-gray-800 flex">
 
       {/* LEFT SIDEBAR */}
       <div className="w-[34%] bg-slate-900 text-white px-7 py-7 flex flex-col gap-7">
@@ -60,6 +62,21 @@ const TemplateModern: React.FC<TemplateProps> = ({ data }) => {
                 <li key={i}>{lang.name}</li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {hobbies && hobbies.length > 0 && (
+          <div>
+            <h2 className="text-[17px] font-bold mb-2">Hobbies</h2>
+
+            <div className="flex flex-wrap gap-2">
+              {hobbies.map((hobby, i) => (
+                <span key={i} className="text-[14px] opacity-80 flex items-center gap-2">
+                   <span className="w-1 h-1 bg-teal-400 rounded-full"></span>
+                   {hobby}
+                </span>
+              ))}
+            </div>
           </div>
         )}
 
@@ -114,6 +131,34 @@ const TemplateModern: React.FC<TemplateProps> = ({ data }) => {
 
             </div>
 
+          </section>
+        )}
+
+        {projects.length > 0 && (
+          <section>
+            <h2 className="text-[19px] font-bold mb-3 border-b pb-1">
+              Projects
+            </h2>
+            <div className="space-y-4">
+              {projects.map((proj, i) => (
+                <div key={i}>
+                  <div className="flex justify-between text-[15px] font-semibold">
+                    <span>{proj.name}</span>
+                    <span className="text-gray-500 text-sm">
+                      {proj.startDate} - {proj.endDate}
+                    </span>
+                  </div>
+                  {proj.link && (
+                    <a href={proj.link} target="_blank" rel="noopener noreferrer" className="text-teal-600 text-xs font-semibold block">
+                      {proj.link.replace(/^https?:\/\/(www\.)?/, '')}
+                    </a>
+                  )}
+                  <p className="text-[14px] text-gray-600 mt-1 whitespace-pre-wrap">
+                    {proj.description}
+                  </p>
+                </div>
+              ))}
+            </div>
           </section>
         )}
 
@@ -173,17 +218,40 @@ const TemplateModern: React.FC<TemplateProps> = ({ data }) => {
 
         {customFields && customFields.length > 0 && (
           <section>
-
-            <h2 className="text-[19px] font-bold mb-3 border-b pb-1">
-              Additional Info
-            </h2>
-
-            <div className="space-y-2">
+            <div className="space-y-4">
 
               {customFields.map((field, i) => (
                 <div key={i} className="text-[14px]">
-                  <span className="font-semibold">{field.label}: </span>
-                  <span className="text-gray-600">{field.value}</span>
+                  {field.title && (
+                    <div className="flex justify-between font-semibold text-[15px]">
+                      <span>{field.title}</span>
+                      {(field.startDate || field.endDate) && (
+                        <span className="text-gray-500 text-sm font-normal">
+                          {field.startDate} {field.endDate ? ` - ${field.endDate}` : ''}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {field.subtitle && (
+                    <div className="text-teal-600 font-semibold text-sm">
+                      {field.subtitle}
+                    </div>
+                  )}
+                  {field.link && (
+                    <a href={field.link} target="_blank" rel="noopener noreferrer" className="text-teal-600 text-xs hover:underline block mt-0.5">
+                      {field.link.replace(/^https?:\/\/(www\.)?/, '')}
+                    </a>
+                  )}
+                  {field.location && (
+                    <div className="text-gray-500 text-xs italic mt-0.5">
+                      {field.location}
+                    </div>
+                  )}
+                  {field.description && (
+                    <p className="text-gray-600 mt-2 leading-relaxed whitespace-pre-wrap">
+                      {field.description}
+                    </p>
+                  )}
                 </div>
               ))}
 

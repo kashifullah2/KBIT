@@ -12,6 +12,9 @@ export interface CVStore {
   addEducation: (edu: CVData['education'][0]) => void;
   updateEducation: (index: number, data: Partial<CVData['education'][0]>) => void;
   removeEducation: (index: number) => void;
+  addProject: (proj: Exclude<CVData['projects'], undefined>[0]) => void;
+  updateProject: (index: number, data: Partial<Exclude<CVData['projects'], undefined>[0]>) => void;
+  removeProject: (index: number) => void;
   setSkills: (skills: string[]) => void;
   addCertification: (cert: CVData['certifications'][0]) => void;
   updateCertification: (index: number, data: Partial<CVData['certifications'][0]>) => void;
@@ -19,6 +22,7 @@ export interface CVStore {
   addLanguage: (lang: CVData['languages'][0]) => void;
   updateLanguage: (index: number, data: Partial<CVData['languages'][0]>) => void;
   removeLanguage: (index: number) => void;
+  setHobbies: (hobbies: string[]) => void;
   setTemplate: (templateId: string) => void;
   setCVData: (data: Partial<CVData>) => void;  // ✅ now accepts Partial
   loadDummyData: () => void;
@@ -42,9 +46,11 @@ const defaultCVData: CVData = {
   },
   experience: [],
   education: [],
+  projects: [],
   skills: [],
   certifications: [],
   languages: [],
+  hobbies: [],
   customFields: [],
 };
 
@@ -90,6 +96,15 @@ const dummyCVData: CVData = {
       endDate: 'Jun 2015',
     }
   ],
+  projects: [
+    {
+      name: 'AI-Powered Portfolio Builder',
+      description: 'Built a multi-tenant SaaS application that generates professional resumes from raw GitHub profiles using GPT-4 and React.',
+      startDate: 'Oct 2022',
+      endDate: 'Dec 2022',
+      link: 'https://github.com/alexchen-dev/portfolify'
+    }
+  ],
   skills: ['JavaScript (ES6+)', 'TypeScript', 'React & Next.js', 'Node.js', 'Python', 'Go', 'PostgreSQL', 'AWS Architecture', 'Docker & Kubernetes', 'GraphQL'],
   certifications: [
     { name: 'AWS Certified Solutions Architect – Professional', issuer: 'Amazon Web Services', date: '2023' },
@@ -100,6 +115,7 @@ const dummyCVData: CVData = {
     { name: 'Mandarin (Bilingual)' },
     { name: 'Spanish (Conversational)' }
   ],
+  hobbies: ['Landscape Photography', 'Urban Sketching', 'Chess', 'Marathon Running'],
   customFields: [],
 };
 
@@ -148,6 +164,23 @@ const useCVStore = create<CVStore>()(
           cvData: { ...state.cvData, education: state.cvData.education.filter((_, i) => i !== index) },
         })),
 
+      addProject: (proj) =>
+        set((state) => ({
+          cvData: { ...state.cvData, projects: [...(state.cvData.projects || []), proj] },
+        })),
+
+      updateProject: (index, data) =>
+        set((state) => {
+          const newProjects = [...(state.cvData.projects || [])];
+          newProjects[index] = { ...newProjects[index], ...data };
+          return { cvData: { ...state.cvData, projects: newProjects } };
+        }),
+
+      removeProject: (index) =>
+        set((state) => ({
+          cvData: { ...state.cvData, projects: (state.cvData.projects || []).filter((_, i) => i !== index) },
+        })),
+
       setSkills: (skills) =>
         set((state) => ({ cvData: { ...state.cvData, skills } })),
 
@@ -185,6 +218,9 @@ const useCVStore = create<CVStore>()(
           cvData: { ...state.cvData, languages: state.cvData.languages.filter((_, i) => i !== index) },
         })),
 
+      setHobbies: (hobbies) =>
+        set((state) => ({ cvData: { ...state.cvData, hobbies } })),
+
       setTemplate: (templateId) => set({ selectedTemplate: templateId }),
 
       // ✅ FIXED: Deep merge instead of full replace.
@@ -202,9 +238,11 @@ const useCVStore = create<CVStore>()(
             // Arrays: only replace if the payload explicitly includes them
             experience: data.experience ?? state.cvData.experience,
             education: data.education ?? state.cvData.education,
+            projects: data.projects ?? state.cvData.projects,
             skills: data.skills ?? state.cvData.skills,
             certifications: data.certifications ?? state.cvData.certifications,
             languages: data.languages ?? state.cvData.languages,
+            hobbies: data.hobbies ?? state.cvData.hobbies,
             customFields: data.customFields ?? state.cvData.customFields,
           },
         })),
@@ -255,9 +293,11 @@ const useCVStore = create<CVStore>()(
             },
             experience: persistedCV.experience ?? defaultCVData.experience,
             education: persistedCV.education ?? defaultCVData.education,
+            projects: persistedCV.projects ?? defaultCVData.projects,
             skills: persistedCV.skills ?? defaultCVData.skills,
             certifications: persistedCV.certifications ?? defaultCVData.certifications,
             languages: persistedCV.languages ?? defaultCVData.languages,
+            hobbies: persistedCV.hobbies ?? defaultCVData.hobbies,
             customFields: persistedCV.customFields ?? defaultCVData.customFields,
           },
         } as CVStore;

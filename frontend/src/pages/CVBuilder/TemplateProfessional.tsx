@@ -2,10 +2,10 @@ import React from 'react';
 import { TemplateProps } from './types';
 
 const TemplateProfessional: React.FC<TemplateProps> = ({ data }) => {
-  const { personalInfo, experience, education, skills, certifications, languages, customFields = [] } = data;
+  const { personalInfo, experience, education, projects = [], skills, certifications, languages, customFields = [] } = data;
 
   return (
-    <div className="w-[210mm] h-[297mm] bg-white font-serif text-gray-900 px-[22mm] pt-[18mm] pb-[22mm] flex flex-col">
+    <div className="w-[210mm] min-h-[297mm] bg-white font-serif text-gray-900 px-[22mm] pt-[18mm] pb-[22mm] flex flex-col">
 
       {/* Header */}
       <div className="border-b-2 border-gray-800 pb-6 mb-6 text-center">
@@ -145,6 +145,37 @@ const TemplateProfessional: React.FC<TemplateProps> = ({ data }) => {
           </section>
         )}
 
+        {/* Projects */}
+        {projects && projects.length > 0 && (
+          <section className="mb-6 break-inside-avoid">
+            <h2 className="text-[18px] font-bold uppercase tracking-wider border-b border-gray-300 mb-4 pb-1">
+              Projects
+            </h2>
+            <div className="space-y-4">
+              {projects.map((proj, i) => (
+                <div key={i}>
+                  <div className="flex justify-between items-baseline mb-1">
+                    <h3 className="font-bold text-[15px] text-gray-900">
+                      {proj.name}
+                      {proj.link && (
+                        <a href={proj.link} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 font-normal text-[12px] font-sans">
+                          [Link]
+                        </a>
+                      )}
+                    </h3>
+                    <span className="text-[13px] font-sans text-gray-500 italic">
+                      {proj.startDate} {proj.endDate ? `- ${proj.endDate}` : ''}
+                    </span>
+                  </div>
+                  <p className="text-[14px] leading-relaxed text-gray-700 font-sans text-justify whitespace-pre-wrap break-words">
+                    {proj.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Education */}
         {education && education.length > 0 && (
           <section className="mb-6 break-inside-avoid">
@@ -258,17 +289,42 @@ const TemplateProfessional: React.FC<TemplateProps> = ({ data }) => {
         {/* Custom Fields */}
         {customFields && customFields.length > 0 && (
           <section className="mb-6 break-inside-avoid mt-4">
-
-            <h2 className="text-[18px] font-bold uppercase tracking-wider border-b border-gray-300 mb-4 pb-1">
-              Additional Information
-            </h2>
-
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-6">
 
               {customFields.map((field, i) => (
-                <div key={i} className="text-[14px] font-sans">
-                  <span className="font-bold text-gray-900">{field.label}: </span>
-                  <span className="text-gray-700">{field.value}</span>
+                <div key={i} className="font-sans">
+                  {field.title && (
+                    <div className="flex justify-between items-baseline mb-1">
+                      <h3 className="font-bold text-[15px] text-gray-900">
+                        {field.title}
+                        {field.link && (
+                          <a href={field.link} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 font-normal text-[12px]">
+                            [Link]
+                          </a>
+                        )}
+                      </h3>
+                      {(field.startDate || field.endDate) && (
+                        <span className="text-[13px] text-gray-500 italic">
+                          {field.startDate} {field.endDate ? `- ${field.endDate}` : ''}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {field.subtitle && (
+                    <div className="text-[13px] font-semibold text-gray-700 mb-1 uppercase tracking-wide">
+                      {field.subtitle}
+                    </div>
+                  )}
+                  {field.location && (
+                    <div className="text-[12px] text-gray-500 mb-2 italic">
+                      {field.location}
+                    </div>
+                  )}
+                  {field.description && (
+                    <p className="text-[14px] leading-relaxed text-gray-700 whitespace-pre-wrap break-words">
+                      {field.description}
+                    </p>
+                  )}
                 </div>
               ))}
 
