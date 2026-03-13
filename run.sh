@@ -73,10 +73,10 @@ sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO \"$DB_USE
 
 # Configure PgBouncer
 echo ">>> Configuring PgBouncer for optimal connection pooling..."
-# PgBouncer auth: Use PostgreSQL's MD5 hash format
-MD5_PASS=$(sudo -u postgres psql -t -c "SELECT '\"' || rolname || '\" \"' || rolpassword FROM pg_authid WHERE rolname='$DB_USER';" | tr -d ' \n')
+# PgBouncer auth: Use PostgreSQL's MD5 hash format from pg_authid
+MD5_PASS=$(sudo -u postgres psql -t -c "SELECT '\"' || rolname || '\" \"' || rolpassword FROM pg_authid WHERE rolname='$DB_USER';" | xargs)
 
-sudo bash -c "echo \"$MD5_PASS\" > /etc/pgbouncer/userlist.txt"
+echo "$MD5_PASS" | sudo tee /etc/pgbouncer/userlist.txt > /dev/null
 echo "PgBouncer userlist configured with secure hash."
 
 cat << EOF | sudo tee /etc/pgbouncer/pgbouncer.ini > /dev/null
