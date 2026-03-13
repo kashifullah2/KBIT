@@ -14,6 +14,7 @@ import axios from 'axios';
 import { useReactToPrint } from 'react-to-print';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
+import { useAuth } from '../context/AuthContext';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -35,6 +36,7 @@ interface ChatResponse {
 /* ------------------------------------------------------------------ */
 const AIAssistant: React.FC = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   // ── State ──
   const [showPreview, setShowPreview] = useState(false);
@@ -402,6 +404,12 @@ const AIAssistant: React.FC = () => {
                           <div className="mt-3 pt-3 border-t border-slate-600/50">
                             <button
                               onClick={() => {
+                                if (!isAuthenticated) {
+                                  if (confirm('Please sign in to download files. Go to login page?')) {
+                                    navigate('/login');
+                                  }
+                                  return;
+                                }
                                 const path = msg.content.split('DOWNLOAD_PATH:')[1].trim();
                                 window.open(`${API_URL}${path}`, '_blank');
                               }}
@@ -443,14 +451,15 @@ const AIAssistant: React.FC = () => {
         {/* Input Area */}
         <div className="px-4 py-4 border-t border-slate-800 shrink-0">
           <div className="flex gap-2 items-end">
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-500 border border-slate-700 bg-slate-800 hover:border-emerald-500/50 hover:text-emerald-400 transition-all shrink-0"
-              title="Attach PDF"
-            >
-              <Paperclip size={18} />
-            </button>
-            <div className="relative flex-1">
+            <div className="relative flex-1 flex items-end bg-slate-800 border border-slate-700 focus-within:border-emerald-500/50 rounded-2xl p-1.5 transition-all group">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-700/50 hover:text-emerald-400 transition-all shrink-0"
+                title="Attach PDF"
+              >
+                <Paperclip size={18} />
+              </button>
+              
               <textarea
                 ref={textareaRef}
                 value={input}
@@ -463,15 +472,16 @@ const AIAssistant: React.FC = () => {
                   }
                 }}
                 placeholder="Message CV Buddy..."
-                className={`w-full bg-slate-800 border border-slate-700 focus:border-emerald-500/50 rounded-xl px-4 py-3 pr-12 text-sm text-white placeholder-slate-500 resize-none transition-all focus:outline-none focus:ring-1 focus:ring-emerald-500/20 min-h-[44px] max-h-[150px] ${isRTL(input) ? 'font-arabic text-base' : ''}`}
+                className={`flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-sm text-white placeholder-slate-500 resize-none transition-all min-h-[36px] max-h-[150px] ${isRTL(input) ? 'font-arabic text-base' : ''}`}
                 rows={1}
               />
+
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
-                className={`absolute right-2 bottom-2 w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all shrink-0 ${
                   !input.trim() || isLoading
-                    ? 'bg-slate-700 text-slate-500'
+                    ? 'bg-slate-700/50 text-slate-500'
                     : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/20'
                 }`}
               >
@@ -479,10 +489,10 @@ const AIAssistant: React.FC = () => {
               </button>
             </div>
           </div>
-          <div className="flex justify-center gap-4 mt-2">
-            {['English', 'اردو', 'پښتو'].map(lang => (
-              <span key={lang} className="text-[9px] text-slate-600 font-semibold uppercase tracking-widest">{lang}</span>
-            ))}
+          <div className="flex justify-center mt-3">
+            <span className="text-[10px] text-white/80 font-bold uppercase tracking-[0.2em] px-3 py-1 bg-slate-800/50 rounded-full border border-slate-700/30">
+              Multi Language Support
+            </span>
           </div>
         </div>
       </div>
@@ -550,7 +560,15 @@ const AIAssistant: React.FC = () => {
                   {previewFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
                 </button>
                 <button
-                  onClick={() => handlePrint()}
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      if (confirm('Please sign in to export your CV. Go to login page?')) {
+                        navigate('/login');
+                      }
+                      return;
+                    }
+                    handlePrint();
+                  }}
                   className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition-all shadow-sm"
                 >
                   <Download size={14} /> Export PDF
@@ -641,7 +659,15 @@ const AIAssistant: React.FC = () => {
                   <Pencil size={14} /> Edit
                 </button>
                 <button
-                  onClick={() => handlePrint()}
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      if (confirm('Please sign in to export your CV. Go to login page?')) {
+                        navigate('/login');
+                      }
+                      return;
+                    }
+                    handlePrint();
+                  }}
                   className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 text-white rounded-lg text-xs font-semibold"
                 >
                   <Download size={14} /> PDF
