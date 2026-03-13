@@ -1,25 +1,26 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Extractor } from './pages/Extractor';
 import CVBuilderRoot from './pages/CVBuilder/Root';
 import CVGallery from './pages/CVBuilder/Gallery';
 import { CVEditor } from './pages/CVBuilder/Editor';
-
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import PDFMerger from './pages/PDFMerger';
 import AIAssistant from './pages/AIAssistant';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { HelmetProvider } from 'react-helmet-async';
 
-const ProtectedRoute = ({ children }) => {
+interface ProtectedRouteProps {
+  children: ReactNode;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div className="flex items-center justify-center h-screen bg-slate-950 text-white">Loading...</div>;
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
-
-import { HelmetProvider } from 'react-helmet-async';
-import { Home } from './pages/Home';
 
 function App() {
   return (
@@ -28,14 +29,16 @@ function App() {
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Layout />}>
-              <Route index element={<Home />} />
+              {/* AI Assistant is the default landing page */}
+              <Route index element={<AIAssistant />} />
+              <Route path="ai-assistant" element={<Navigate to="/" replace />} />
+
               <Route path="extractor" element={<Extractor />} />
               <Route path="cv-builder" element={<CVBuilderRoot />}>
                 <Route index element={<CVGallery />} />
                 <Route path="edit" element={<CVEditor />} />
               </Route>
               <Route path="pdf-merger" element={<PDFMerger />} />
-              <Route path="ai-assistant" element={<AIAssistant />} />
 
               <Route path="login" element={<Login />} />
               <Route path="signup" element={<Signup />} />

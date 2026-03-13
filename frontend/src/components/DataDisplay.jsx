@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { FileText, Download, Edit2, Send, Check } from 'lucide-react';
 
-export function DataDisplay({ data, onRefine, isRefining }) {
+export function DataDisplay({ data, onRefine = null, isRefining = false }) {
     const [editingId, setEditingId] = useState(null);
     const [instructions, setInstructions] = useState("");
 
@@ -183,15 +183,15 @@ export function DataDisplay({ data, onRefine, isRefining }) {
                                                                         placeholder="Describe corrections, e.g. 'Change the Invoice Date to 2024-01-01'..."
                                                                         className="flex-1 rounded-lg border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2.5 px-3 shadow-sm"
                                                                         autoFocus
-                                                                        onKeyDown={(e) => {
-                                                                            if (e.key === 'Enter' && instructions && !isRefining) {
+                                                                    onKeyDown={(e) => {
+                                                                            if (e.key === 'Enter' && instructions && !isRefining && onRefine) {
                                                                                 submitRefine(item, index);
                                                                             }
                                                                         }}
                                                                     />
                                                                     <button
-                                                                        onClick={() => submitRefine(item, index)}
-                                                                        disabled={!instructions || isRefining}
+                                                                        onClick={() => onRefine && submitRefine(item, index)}
+                                                                        disabled={!instructions || isRefining || !onRefine}
                                                                         className="bg-indigo-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm shadow-indigo-200 transition-all active:scale-95"
                                                                     >
                                                                         {isRefining ? 'Updating...' : 'Send'}

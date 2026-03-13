@@ -44,13 +44,13 @@ const CVGallery: React.FC = () => {
             <div 
               key={id} 
               className={`group relative flex flex-col bg-white rounded-2xl shadow-sm border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 overflow-hidden
-                ${selectedTemplate === id ? 'border-blue-500 ring-4 ring-blue-50' : 'border-gray-200 hover:border-blue-300'}
+                ${selectedTemplate === id ? 'border-emerald-500 ring-4 ring-emerald-50' : 'border-gray-200 hover:border-emerald-300'}
               `}
             >
               {/* Badge */}
               <div className="absolute top-4 right-4 z-20">
                 <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm backdrop-blur-md
-                  ${id === 'modern' ? 'bg-blue-500 text-white' : 
+                  ${id === 'modern' ? 'bg-emerald-500 text-white' : 
                     id === 'professional' ? 'bg-slate-800 text-white' : 
                     'bg-teal-500 text-white'}`}
                 >
@@ -60,7 +60,7 @@ const CVGallery: React.FC = () => {
 
               {/* Selection Indicator */}
               {selectedTemplate === id && (
-                <div className="absolute top-4 left-4 z-20 bg-blue-500 text-white rounded-full p-1 shadow-md">
+                <div className="absolute top-4 left-4 z-20 bg-emerald-500 text-white rounded-full p-1 shadow-md">
                    <CheckCircle2 size={16} />
                 </div>
               )}
@@ -70,7 +70,7 @@ const CVGallery: React.FC = () => {
                  <img src={image} alt={`${name} Template Preview`} className="w-full h-full object-cover object-top" />
                  
                  {/* Overlay on hover */}
-                 <div className="absolute inset-0 bg-blue-900/0 group-hover:bg-blue-900/10 transition-colors z-10 flex items-center justify-center pointer-events-none">
+                 <div className="absolute inset-0 bg-emerald-900/0 group-hover:bg-emerald-900/10 transition-colors z-10 flex items-center justify-center pointer-events-none">
                  </div>
               </div>
 
@@ -81,8 +81,8 @@ const CVGallery: React.FC = () => {
                   onClick={() => handleSelect(id)}
                   className={`w-full py-3 px-4 rounded-xl font-semibold transition-all shadow-sm
                     ${selectedTemplate === id 
-                      ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 border-2 border-blue-200' 
-                      : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md'
+                      ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-2 border-emerald-200' 
+                      : 'bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-md'
                     }`}
                 >
                   {selectedTemplate === id ? 'Resume Editing' : 'Start with this template'}

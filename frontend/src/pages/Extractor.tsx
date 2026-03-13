@@ -6,13 +6,12 @@ import { Helmet } from 'react-helmet-async';
 
 import { API_URL } from '../config';
 
-export function Extractor() {
-    const [data, setData] = useState([]);
-    const [isUploading, setIsUploading] = useState(false);
-    const [isRefining, setIsRefining] = useState(false);
-    const [error, setError] = useState(null);
+export const Extractor: React.FC = () => {
+    const [data, setData] = useState<any[]>([]);
+    const [isUploading, setIsUploading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const handleFilesSelected = async (files, schema, isMerge, ocrEngine) => {
+    const handleFilesSelected = async (files: File[], schema?: string, isMerge?: boolean, ocrEngine?: string) => {
         if (files.length === 0) return;
 
         setIsUploading(true);
@@ -48,41 +47,11 @@ export function Extractor() {
             } else {
                 setData(newData);
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
             setError("Failed to process files. Please try again.");
         } finally {
             setIsUploading(false);
-        }
-    };
-
-    const handleRefine = async (item, index, instructions) => {
-        setIsRefining(true);
-        try {
-            const response = await fetch(`${API_URL}/refine`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    current_data: item.fields,
-                    instructions: instructions
-                })
-            });
-
-            if (!response.ok) throw new Error("Refinement failed");
-
-            const refinedFields = await response.json();
-
-            setData(prev => {
-                const newData = [...prev];
-                newData[index] = { ...newData[index], fields: refinedFields };
-                return newData;
-            });
-
-        } catch (err) {
-            console.error(err);
-            alert("Failed to refine data");
-        } finally {
-            setIsRefining(false);
         }
     };
 
@@ -104,11 +73,6 @@ export function Extractor() {
                 </div>
 
                 <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 animate-fade-in-up delay-100 text-balance">
-                    {/* <div className="inline-flex items-center rounded-full border border-indigo-100 bg-indigo-50/50 px-3 py-1 text-sm text-indigo-700 backdrop-blur-sm mb-4">
-                    <span className="flex h-2 w-2 rounded-full bg-indigo-600 mr-2 animate-pulse"></span>
-                    AI-Powered Extraction 2.0
-                </div> */}
-
                     Transform Documents into <br />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600">
                         Structured Data
@@ -139,7 +103,7 @@ export function Extractor() {
             )}
 
             {/* Results */}
-            <DataDisplay data={data} onRefine={handleRefine} isRefining={isRefining} />
+            <DataDisplay data={data} />
         </div>
     );
 }

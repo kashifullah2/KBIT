@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useCVStore from '../../store/useCVStore';
 import { User, Briefcase, GraduationCap, Wrench, FileText, ChevronDown, Plus, Trash2, Wand2, Loader2 } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config';
 import { CVData, CustomField } from './types';
 
 interface MD3InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -111,6 +112,48 @@ const SidebarForm: React.FC = () => {
   const clearData = useCVStore((state) => state.clearData);
 
   const [isGenerating, setIsGenerating] = useState<Record<number, boolean>>({});
+  const [itemKeys, setItemKeys] = useState<Record<string, string[]>>({
+    experience: [],
+    education: [],
+    certifications: [],
+    languages: [],
+    skills: [],
+    customFields: [],
+  });
+
+  const ensureKeys = (section: keyof typeof itemKeys, length: number) => {
+    setItemKeys((prev) => {
+      const current = prev[section] || [];
+      if (current.length === length) return prev;
+
+      const next = [...current];
+      if (length > current.length) {
+        for (let i = current.length; i < length; i += 1) {
+          next.push(`${section}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}-${i}`);
+        }
+      } else {
+        next.splice(length);
+      }
+
+      return { ...prev, [section]: next };
+    });
+  };
+
+  useEffect(() => {
+    ensureKeys('experience', cvData.experience.length);
+    ensureKeys('education', cvData.education.length);
+    ensureKeys('certifications', cvData.certifications.length);
+    ensureKeys('languages', cvData.languages.length);
+    ensureKeys('skills', cvData.skills.length);
+    ensureKeys('customFields', (cvData.customFields || []).length);
+  }, [
+    cvData.experience.length,
+    cvData.education.length,
+    cvData.certifications.length,
+    cvData.languages.length,
+    cvData.skills.length,
+    (cvData.customFields || []).length,
+  ]);
 
   const toggleSection = (id: string) => {
     setOpenSection(openSection === id ? null : id);
@@ -126,9 +169,9 @@ const SidebarForm: React.FC = () => {
       return;
     }
 
-    setIsGenerating({ ...isGenerating, [index]: true });
+    setIsGenerating((prev) => ({ ...prev, [index]: true }));
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/cv/improve`, {
+      const response = await axios.post(`${API_BASE_URL}/cv/improve`, {
         text: `Generate 3 professional, active, action-driven resume bullet points for a ${jobTitle}. Do not include a preamble or conclusion, just the 3 bullet points starting with a dash.`,
         section: "experience"
       });
@@ -140,7 +183,7 @@ const SidebarForm: React.FC = () => {
       console.error("Magic write failed:", error);
       alert("Failed to generate text. Please try again.");
     } finally {
-      setIsGenerating({ ...isGenerating, [index]: false });
+      setIsGenerating((prev) => ({ ...prev, [index]: false }));
     }
   };
 
@@ -203,7 +246,7 @@ const SidebarForm: React.FC = () => {
                 <AnimatePresence>
                   {cvData.experience.map((exp, index) => (
                     <motion.div
-                      key={index}
+                      key={itemKeys.experience[index] || `experience-${index}`}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, height: 0 }}
@@ -270,7 +313,7 @@ const SidebarForm: React.FC = () => {
                 <AnimatePresence>
                   {cvData.education.map((edu, index) => (
                     <motion.div
-                      key={index}
+                      key={itemKeys.education[index] || `education-${index}`}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, height: 0 }}
@@ -315,7 +358,7 @@ const SidebarForm: React.FC = () => {
                 <AnimatePresence>
                   {cvData.certifications.map((cert, index) => (
                     <motion.div
-                      key={index}
+                      key={itemKeys.certifications[index] || `certifications-${index}`}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, height: 0 }}
@@ -359,7 +402,7 @@ const SidebarForm: React.FC = () => {
                 <AnimatePresence>
                   {cvData.languages.map((lang, index) => (
                      <motion.div
-                      key={index}
+                      key={itemKeys.languages[index] || `languages-${index}`}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, height: 0 }}
@@ -398,7 +441,7 @@ const SidebarForm: React.FC = () => {
                 <AnimatePresence>
                   {cvData.skills.map((skill, index) => (
                     <motion.div
-                      key={index}
+                      key={itemKeys.skills[index] || `skills-${index}`}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, height: 0 }}
@@ -465,7 +508,7 @@ const SidebarForm: React.FC = () => {
                 <AnimatePresence>
                   {(cvData.customFields || []).map((field, index) => (
                     <motion.div
-                      key={index}
+                      key={itemKeys.customFields[index] || `customFields-${index}`}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, height: 0 }}

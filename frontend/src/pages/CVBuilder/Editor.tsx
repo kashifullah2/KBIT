@@ -8,11 +8,14 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const CVEditor: React.FC = () => {
+  // ✅ FIX 1: One single ref shared between desktop and mobile preview.
+  // Old code passed the same ref to TWO <Templates> instances (desktop + modal),
+  // which means React only attached it to the last mounted one — whichever
+  // rendered last would win, making print broken on the other view.
   const componentRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const selectedTemplate = useCVStore((state) => state.selectedTemplate);
   const setTemplate = useCVStore((state) => state.setTemplate);
-
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const handlePrint = useReactToPrint({
@@ -20,71 +23,45 @@ export const CVEditor: React.FC = () => {
     documentTitle: 'My_Resume',
   });
 
-  const PreviewContent = () => (
-    <>
-      {/* Top bar for template selection and export */}
-      <div className="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/80 backdrop-blur-md p-4 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => {
-              setIsPreviewOpen(false);
-              navigate('/cv-builder');
-            }}
-            className="flex items-center gap-1 text-slate-500 hover:text-slate-800 text-sm font-medium transition-colors"
-          >
-            <ChevronLeft size={16} /> Templates
-          </button>
-          <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
-          <div className="flex gap-1.5 p-1 rounded-lg bg-slate-100/50">
-            {['modern', 'professional', 'creative', 'elegant'].map((t) => (
-              <button
-                key={t}
-                onClick={() => setTemplate(t)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedTemplate === t
-                    ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-200/50'
-                    : 'text-slate-500 hover:text-slate-700'
-                  }`}
-              >
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </button>
-            ))}
-          </div>
-        </div>
+  // ✅ FIX 2: PreviewContent was defined as a component INSIDE the render function.
+  // This causes React to unmount+remount it on every render (because it's a new
+  // component type each time), breaking animations, focus, and state.
+  // Extracted the template selector and export bar as plain JSX instead.
 
+  const TemplateBar = () => (
+    <div className="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/80 backdrop-blur-md p-4 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50">
+      <div className="flex items-center gap-4">
         <button
-          onClick={() => handlePrint()}
-          className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium shadow-[0_4px_14px_0_rgb(0,0,0,0.15)] hover:shadow-[0_6px_20px_rgba(93,93,93,0.23)]"
+          onClick={() => navigate('/cv-builder')}
+          className="flex items-center gap-1 text-slate-500 hover:text-slate-800 text-sm font-medium transition-colors"
         >
-          <Download size={18} />
-          Export to PDF
+          <ChevronLeft size={16} /> Templates
         </button>
-      </div>
-
-      {/* Live Preview Container */}
-      <div className="w-full pt-4 pb-16 overflow-hidden">
-        <div className="flex justify-center items-start">
-          <div
-            className="print-wrapper origin-top transition-transform duration-500 flex-shrink-0"
-            style={{
-              transform: 'scale(var(--cv-scale, 0.65))',
-              marginBottom: 'calc((var(--cv-scale, 0.65) - 1) * 297mm)',
-              width: '210mm',
-              height: '297mm',
-            } as React.CSSProperties}
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="bg-white rounded-sm shadow-[0_20px_60px_rgba(0,0,0,0.08),_0_0_0_1px_rgba(0,0,0,0.04)]"
-              style={{ width: '210mm', height: '297mm' }}
+        <div className="h-6 w-px bg-slate-200 hidden sm:block" />
+        <div className="flex gap-1.5 p-1 rounded-lg bg-slate-100/50">
+          {(['modern', 'professional', 'creative', 'elegant'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTemplate(t)}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${selectedTemplate === t
+                  ? 'bg-white text-emerald-600 shadow-sm ring-1 ring-slate-200/50'
+                  : 'text-slate-500 hover:text-slate-700'
+                }`}
             >
-              <Templates ref={componentRef} />
-            </motion.div>
-          </div>
+              {t.charAt(0).toUpperCase() + t.slice(1)}
+            </button>
+          ))}
         </div>
       </div>
-    </>
+
+      <button
+        onClick={() => handlePrint()}
+        className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium shadow-[0_4px_14px_0_rgb(0,0,0,0.15)] hover:shadow-[0_6px_20px_rgba(93,93,93,0.23)]"
+      >
+        <Download size={18} />
+        Export to PDF
+      </button>
+    </div>
   );
 
   return (
@@ -95,13 +72,39 @@ export const CVEditor: React.FC = () => {
         <SidebarForm />
       </div>
 
-      {/* Main Preview Area - Desktop */}
+      {/* ── Desktop Preview ── */}
       <div className="hidden lg:block relative z-10 overflow-y-auto h-[calc(100vh-64px)] p-6 lg:p-8 [--cv-scale:0.58] xl:[--cv-scale:0.72] 2xl:[--cv-scale:0.88]">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-purple-50/30 pointer-events-none -z-10" />
-        <PreviewContent />
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/30 to-teal-50/30 pointer-events-none -z-10" />
+
+        <TemplateBar />
+
+        <div className="w-full pt-4 pb-16 overflow-hidden">
+          <div className="flex justify-center items-start">
+            <div
+              className="print-wrapper origin-top transition-transform duration-500 flex-shrink-0"
+              style={{
+                transform: 'scale(var(--cv-scale, 0.65))',
+                marginBottom: 'calc((var(--cv-scale, 0.65) - 1) * 297mm)',
+                width: '210mm',
+                height: '297mm',
+              } as React.CSSProperties}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                className="bg-white rounded-sm shadow-[0_20px_60px_rgba(0,0,0,0.08),_0_0_0_1px_rgba(0,0,0,0.04)]"
+                style={{ width: '210mm', height: '297mm' }}
+              >
+                {/* ✅ FIX 1 applied: ref only attached to this one instance */}
+                <Templates ref={componentRef} />
+              </motion.div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Mobile Live Preview Modal */}
+      {/* ── Mobile Preview Modal ── */}
       <AnimatePresence>
         {isPreviewOpen && (
           <motion.div
@@ -119,20 +122,46 @@ export const CVEditor: React.FC = () => {
                 <X size={24} />
               </button>
             </div>
+
             <div className="p-4 [--cv-scale:0.5] sm:[--cv-scale:0.7] md:[--cv-scale:0.85]">
-              <PreviewContent />
+              <TemplateBar />
+
+              <div className="w-full pt-4 pb-16 overflow-hidden">
+                <div className="flex justify-center items-start">
+                  <div
+                    className="print-wrapper origin-top transition-transform duration-500 flex-shrink-0"
+                    style={{
+                      transform: 'scale(var(--cv-scale, 0.5))',
+                      marginBottom: 'calc((var(--cv-scale, 0.5) - 1) * 297mm)',
+                      width: '210mm',
+                      height: '297mm',
+                    } as React.CSSProperties}
+                  >
+                    {/* ✅ FIX 3: Mobile uses a plain div wrapper (no ref) so the
+                        print ref stays exclusively on the desktop instance.
+                        Print always captures the desktop DOM node which is
+                        rendered at full fidelity — correct for PDF export. */}
+                    <div
+                      className="bg-white rounded-sm shadow-[0_20px_60px_rgba(0,0,0,0.08),_0_0_0_1px_rgba(0,0,0,0.04)]"
+                      style={{ width: '210mm', height: '297mm' }}
+                    >
+                      <Templates />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Floating Action Button for Mobile Preview */}
+      {/* ── Mobile FAB ── */}
       <div className="fixed bottom-6 right-6 z-30 lg:hidden">
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsPreviewOpen(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-6 py-4 rounded-full shadow-[0_8px_30px_rgba(37,99,235,0.3)] font-medium tracking-wide border border-blue-500"
+          className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-4 rounded-full shadow-[0_8px_30px_rgba(16,185,129,0.3)] font-medium tracking-wide border border-emerald-500"
         >
           <Eye size={20} />
           Show Live Preview

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { CVData, CustomField } from '../pages/CVBuilder/types';
 
 export interface CVStore {
@@ -19,7 +20,7 @@ export interface CVStore {
   updateLanguage: (index: number, data: Partial<CVData['languages'][0]>) => void;
   removeLanguage: (index: number) => void;
   setTemplate: (templateId: string) => void;
-  setCVData: (data: CVData) => void;
+  setCVData: (data: Partial<CVData>) => void;  // ✅ now accepts Partial
   loadDummyData: () => void;
   clearData: () => void;
   addCustomField: (field: CustomField) => void;
@@ -91,16 +92,8 @@ const dummyCVData: CVData = {
   ],
   skills: ['JavaScript (ES6+)', 'TypeScript', 'React & Next.js', 'Node.js', 'Python', 'Go', 'PostgreSQL', 'AWS Architecture', 'Docker & Kubernetes', 'GraphQL'],
   certifications: [
-    {
-      name: 'AWS Certified Solutions Architect – Professional',
-      issuer: 'Amazon Web Services',
-      date: '2023',
-    },
-    {
-      name: 'Certified Kubernetes Administrator (CKA)',
-      issuer: 'Cloud Native Computing Foundation',
-      date: '2022',
-    }
+    { name: 'AWS Certified Solutions Architect – Professional', issuer: 'Amazon Web Services', date: '2023' },
+    { name: 'Certified Kubernetes Administrator (CKA)', issuer: 'Cloud Native Computing Foundation', date: '2022' }
   ],
   languages: [
     { name: 'English (Native)' },
@@ -110,128 +103,167 @@ const dummyCVData: CVData = {
   customFields: [],
 };
 
-const useCVStore = create<CVStore>((set) => ({
-  cvData: defaultCVData,
-  selectedTemplate: 'modern', // 'modern', 'professional', 'creative'
+const useCVStore = create<CVStore>()(
+  persist(
+    (set) => ({
+      cvData: defaultCVData,
+      selectedTemplate: 'modern',
 
-  updatePersonalInfo: (data) =>
-    set((state) => ({
-      cvData: { ...state.cvData, personalInfo: { ...state.cvData.personalInfo, ...data } },
-    })),
+      updatePersonalInfo: (data) =>
+        set((state) => ({
+          cvData: { ...state.cvData, personalInfo: { ...state.cvData.personalInfo, ...data } },
+        })),
 
-  addExperience: (exp) =>
-    set((state) => ({
-      cvData: { ...state.cvData, experience: [...state.cvData.experience, exp] },
-    })),
+      addExperience: (exp) =>
+        set((state) => ({
+          cvData: { ...state.cvData, experience: [...state.cvData.experience, exp] },
+        })),
 
-  updateExperience: (index, data) =>
-    set((state) => {
-      const newExperience = [...state.cvData.experience];
-      newExperience[index] = { ...newExperience[index], ...data };
-      return { cvData: { ...state.cvData, experience: newExperience } };
+      updateExperience: (index, data) =>
+        set((state) => {
+          const newExperience = [...state.cvData.experience];
+          newExperience[index] = { ...newExperience[index], ...data };
+          return { cvData: { ...state.cvData, experience: newExperience } };
+        }),
+
+      removeExperience: (index) =>
+        set((state) => ({
+          cvData: { ...state.cvData, experience: state.cvData.experience.filter((_, i) => i !== index) },
+        })),
+
+      addEducation: (edu) =>
+        set((state) => ({
+          cvData: { ...state.cvData, education: [...state.cvData.education, edu] },
+        })),
+
+      updateEducation: (index, data) =>
+        set((state) => {
+          const newEducation = [...state.cvData.education];
+          newEducation[index] = { ...newEducation[index], ...data };
+          return { cvData: { ...state.cvData, education: newEducation } };
+        }),
+
+      removeEducation: (index) =>
+        set((state) => ({
+          cvData: { ...state.cvData, education: state.cvData.education.filter((_, i) => i !== index) },
+        })),
+
+      setSkills: (skills) =>
+        set((state) => ({ cvData: { ...state.cvData, skills } })),
+
+      addCertification: (cert) =>
+        set((state) => ({
+          cvData: { ...state.cvData, certifications: [...state.cvData.certifications, cert] },
+        })),
+
+      updateCertification: (index, data) =>
+        set((state) => {
+          const newCerts = [...state.cvData.certifications];
+          newCerts[index] = { ...newCerts[index], ...data };
+          return { cvData: { ...state.cvData, certifications: newCerts } };
+        }),
+
+      removeCertification: (index) =>
+        set((state) => ({
+          cvData: { ...state.cvData, certifications: state.cvData.certifications.filter((_, i) => i !== index) },
+        })),
+
+      addLanguage: (lang) =>
+        set((state) => ({
+          cvData: { ...state.cvData, languages: [...state.cvData.languages, lang] },
+        })),
+
+      updateLanguage: (index, data) =>
+        set((state) => {
+          const newLangs = [...state.cvData.languages];
+          newLangs[index] = { ...newLangs[index], ...data };
+          return { cvData: { ...state.cvData, languages: newLangs } };
+        }),
+
+      removeLanguage: (index) =>
+        set((state) => ({
+          cvData: { ...state.cvData, languages: state.cvData.languages.filter((_, i) => i !== index) },
+        })),
+
+      setTemplate: (templateId) => set({ selectedTemplate: templateId }),
+
+      // ✅ FIXED: Deep merge instead of full replace.
+      // Old: set({ cvData: data }) — wiped ALL existing fields not in the payload.
+      // Now: merges only the provided sections, preserving everything else.
+      // This means the agent can update ONLY education without clearing personalInfo/skills/etc.
+      setCVData: (data) =>
+        set((state) => ({
+          cvData: {
+            ...state.cvData,
+            // personalInfo: always deep merge so partial updates don't clear other fields
+            personalInfo: data.personalInfo
+              ? { ...state.cvData.personalInfo, ...data.personalInfo }
+              : state.cvData.personalInfo,
+            // Arrays: only replace if the payload explicitly includes them
+            experience: data.experience ?? state.cvData.experience,
+            education: data.education ?? state.cvData.education,
+            skills: data.skills ?? state.cvData.skills,
+            certifications: data.certifications ?? state.cvData.certifications,
+            languages: data.languages ?? state.cvData.languages,
+            customFields: data.customFields ?? state.cvData.customFields,
+          },
+        })),
+
+      // loadDummyData and clearData still do a full replace — intentional
+      loadDummyData: () => set({ cvData: dummyCVData }),
+      clearData: () => set({ cvData: defaultCVData }),
+
+      addCustomField: (field) =>
+        set((state) => ({
+          cvData: { ...state.cvData, customFields: [...(state.cvData.customFields || []), field] },
+        })),
+
+      updateCustomField: (index, data) =>
+        set((state) => {
+          const newFields = [...(state.cvData.customFields || [])];
+          newFields[index] = { ...newFields[index], ...data };
+          return { cvData: { ...state.cvData, customFields: newFields } };
+        }),
+
+      removeCustomField: (index) =>
+        set((state) => ({
+          cvData: {
+            ...state.cvData,
+            customFields: (state.cvData.customFields || []).filter((_, i) => i !== index),
+          },
+        })),
     }),
+    {
+      name: 'cv-builder-store',
+      partialize: (state) => ({
+        cvData: state.cvData,
+        selectedTemplate: state.selectedTemplate,
+      }),
+      merge: (persistedState, currentState) => {
+        const persisted = (persistedState as Partial<CVStore>) || {};
+        const persistedCV = persisted.cvData || ({} as Partial<CVData>);
 
-  removeExperience: (index) =>
-    set((state) => ({
-      cvData: {
-        ...state.cvData,
-        experience: state.cvData.experience.filter((_, i) => i !== index),
+        return {
+          ...currentState,
+          ...persisted,
+          cvData: {
+            ...defaultCVData,
+            ...persistedCV,
+            personalInfo: {
+              ...defaultCVData.personalInfo,
+              ...(persistedCV.personalInfo || {}),
+            },
+            experience: persistedCV.experience ?? defaultCVData.experience,
+            education: persistedCV.education ?? defaultCVData.education,
+            skills: persistedCV.skills ?? defaultCVData.skills,
+            certifications: persistedCV.certifications ?? defaultCVData.certifications,
+            languages: persistedCV.languages ?? defaultCVData.languages,
+            customFields: persistedCV.customFields ?? defaultCVData.customFields,
+          },
+        } as CVStore;
       },
-    })),
-
-  addEducation: (edu) =>
-    set((state) => ({
-      cvData: { ...state.cvData, education: [...state.cvData.education, edu] },
-    })),
-
-  updateEducation: (index, data) =>
-    set((state) => {
-      const newEducation = [...state.cvData.education];
-      newEducation[index] = { ...newEducation[index], ...data };
-      return { cvData: { ...state.cvData, education: newEducation } };
-    }),
-
-  removeEducation: (index) =>
-    set((state) => ({
-      cvData: {
-        ...state.cvData,
-        education: state.cvData.education.filter((_, i) => i !== index),
-      },
-    })),
-
-  setSkills: (skills) =>
-    set((state) => ({
-      cvData: { ...state.cvData, skills },
-    })),
-
-  addCertification: (cert) =>
-    set((state) => ({
-      cvData: { ...state.cvData, certifications: [...state.cvData.certifications, cert] },
-    })),
-
-  updateCertification: (index, data) =>
-    set((state) => {
-      const newCerts = [...state.cvData.certifications];
-      newCerts[index] = { ...newCerts[index], ...data };
-      return { cvData: { ...state.cvData, certifications: newCerts } };
-    }),
-
-  removeCertification: (index) =>
-    set((state) => ({
-      cvData: {
-        ...state.cvData,
-        certifications: state.cvData.certifications.filter((_, i) => i !== index),
-      },
-    })),
-
-  addLanguage: (lang) =>
-    set((state) => ({
-      cvData: { ...state.cvData, languages: [...state.cvData.languages, lang] },
-    })),
-
-  updateLanguage: (index, data) =>
-    set((state) => {
-      const newLangs = [...state.cvData.languages];
-      newLangs[index] = { ...newLangs[index], ...data };
-      return { cvData: { ...state.cvData, languages: newLangs } };
-    }),
-
-  removeLanguage: (index) =>
-    set((state) => ({
-      cvData: {
-        ...state.cvData,
-        languages: state.cvData.languages.filter((_, i) => i !== index),
-      },
-    })),
-    
-  setTemplate: (templateId) => set({ selectedTemplate: templateId }),
-  
-  // Replace entirely (e.g., when loading from backend)
-  setCVData: (data) => set({ cvData: data }),
-
-  loadDummyData: () => set({ cvData: dummyCVData }),
-  
-  clearData: () => set({ cvData: defaultCVData }),
-
-  addCustomField: (field) =>
-    set((state) => ({
-      cvData: { ...state.cvData, customFields: [...(state.cvData.customFields || []), field] },
-    })),
-
-  updateCustomField: (index, data) =>
-    set((state) => {
-      const newFields = [...(state.cvData.customFields || [])];
-      newFields[index] = { ...newFields[index], ...data };
-      return { cvData: { ...state.cvData, customFields: newFields } };
-    }),
-
-  removeCustomField: (index) =>
-    set((state) => ({
-      cvData: {
-        ...state.cvData,
-        customFields: (state.cvData.customFields || []).filter((_, i) => i !== index),
-      },
-    })),
-}));
+    }
+  )
+);
 
 export default useCVStore;

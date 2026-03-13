@@ -28,7 +28,7 @@ const Templates = forwardRef<HTMLDivElement, {}>((_props, ref) => {
   }
 
   return (
-    <div ref={ref} className="w-full h-full bg-white relative overflow-hidden print:w-auto print:h-auto text-left">
+    <div ref={ref} className="w-full h-full bg-white relative overflow-hidden print:overflow-visible print:w-[210mm] print:h-auto text-left">
       <TemplateComponent data={cvData} />
     </div>
   );

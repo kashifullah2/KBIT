@@ -7,7 +7,7 @@ import { TemplateProps } from './types';
  * A minimalist, typography-focused design with a spacious and balanced layout.
  */
 const TemplateElegant: React.FC<TemplateProps> = ({ data }) => {
-  const { personalInfo, experience, education, skills, certifications, languages } = data;
+  const { personalInfo, experience, education, skills, certifications, languages, customFields = [] } = data;
 
   return (
     <div className="flex flex-col w-full h-full bg-[#FAFAFA] text-slate-800 p-16 font-sans">
@@ -169,6 +169,21 @@ const TemplateElegant: React.FC<TemplateProps> = ({ data }) => {
                     <div key={i} className="text-sm font-medium text-slate-700 flex items-center gap-2 uppercase tracking-widest">
                       <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
                       {lang.name}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Custom Fields */}
+            {customFields && customFields.length > 0 && (
+              <section>
+                <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-5">Additional Info</h2>
+                <div className="flex flex-col gap-3">
+                  {customFields.map((field, i) => (
+                    <div key={i} className="text-sm text-slate-700 break-words">
+                      <span className="font-semibold uppercase tracking-wide text-slate-600">{field.label}: </span>
+                      <span className="font-light">{field.value}</span>
                     </div>
                   ))}
                 </div>

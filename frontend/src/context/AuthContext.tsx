@@ -1,20 +1,37 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import axios from 'axios';
 import { API_URL } from '../config';
 
-const AuthContext = createContext(null);
+interface User {
+    id: number;
+    email: string;
+    first_name?: string;
+    last_name?: string;
+    // Add other fields as needed
+}
 
-export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [token, setToken] = useState(localStorage.getItem('token'));
-    const [loading, setLoading] = useState(true);
+interface AuthContextType {
+    user: User | null;
+    token: string | null;
+    login: (email: string, password: string) => Promise<boolean>;
+    signup: (userData: any) => Promise<boolean>;
+    logout: () => void;
+    loading: boolean;
+    isAuthenticated: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const [user, setUser] = useState<User | null>(null);
+    const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+    const [loading, setLoading] = useState<boolean>(true);
 
     // Configure axios defaults
     useEffect(() => {
         if (token) {
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             localStorage.setItem('token', token);
-            // Optionally fetch user profile here
             fetchUserProfile();
         } else {
             delete axios.defaults.headers.common['Authorization'];
@@ -36,7 +53,7 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const login = async (email, password) => {
+    const login = async (email: string, password: string): Promise<boolean> => {
         const formData = new FormData();
         formData.append('username', email); // OAuth2 expects 'username'
         formData.append('password', password);
@@ -51,7 +68,7 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const signup = async (userData) => {
+    const signup = async (userData: any): Promise<boolean> => {
         try {
             const response = await axios.post(`${API_URL}/signup`, userData);
             setToken(response.data.access_token);
@@ -74,4 +91,8 @@ export const AuthProvider = ({ children }) => {
     );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) throw new Error('useAuth must be used within an AuthProvider');
+    return context;
+};
