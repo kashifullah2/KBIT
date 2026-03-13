@@ -73,13 +73,14 @@ sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO \"$DB_USE
 
 # Configure PgBouncer
 echo ">>> Configuring PgBouncer for optimal connection pooling..."
-# PgBouncer auth: Use PostgreSQL's MD5 hash format
-MD5_PASS=$(sudo -u postgres psql -t -c "SELECT '\"' || rolname || '\" \"' || rolpassword FROM pg_authid WHERE rolname='$DB_USER';" | tr -d ' \n')
+# PgBouncer auth: Use PostgreSQL's MD5 hash format from pg_authid
+# --no-align --tuples-only ensures clean output without padding or headers
+MD5_PASS=$(sudo -u postgres psql --no-align --tuples-only -c "SELECT '\"' || rolname || '\" \"' || rolpassword FROM pg_authid WHERE rolname='$DB_USER';" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
-sudo bash -c "echo \"$MD5_PASS\" > /etc/pgbouncer/userlist.txt"
+echo "$MD5_PASS" | sudo tee /etc/pgbouncer/userlist.txt > /dev/null
 echo "PgBouncer userlist configured with secure hash."
 
-sudo bash -c "cat > /etc/pgbouncer/pgbouncer.ini" <<EOF
+cat << EOF | sudo tee /etc/pgbouncer/pgbouncer.ini > /dev/null
 [databases]
 $DB_NAME = host=127.0.0.1 port=5432 dbname=$DB_NAME
 
@@ -153,7 +154,7 @@ ACTUAL_USER=${SUDO_USER:-root}
 # Ensure the backend directory is absolutely resolved
 ABS_BACKEND_DIR=$(readlink -f $BACKEND_DIR)
 
-sudo bash -c "cat > $SERVICE_FILE" <<EOF
+cat << EOF | sudo tee $SERVICE_FILE > /dev/null
 [Unit]
 Description=Gunicorn instance to serve KBIT FastAPI Backend
 After=network.target
@@ -203,7 +204,7 @@ echo ">>> Configuring Nginx..."
 
 NGINX_CONF="/etc/nginx/sites-available/kbit"
 
-sudo bash -c "cat > $NGINX_CONF" <<EOF
+cat << EOF | sudo tee $NGINX_CONF > /dev/null
 server {
     listen 80;
     server_name _; 
