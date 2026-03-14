@@ -226,10 +226,26 @@ const AIAssistant: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post<ChatResponse>(`${API_URL}/chat`, {
-        messages: [{ role: 'user', content: trimmed }],
-        thread_id: threadId,
-      });
+      // ✅ Better error handling for API calls
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+      
+      const response = await axios.post<ChatResponse>(
+        `${API_URL}/chat`,
+        {
+          messages: [{ role: 'user', content: trimmed }],
+          thread_id: threadId,
+        },
+        {
+          signal: controller.signal,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          timeout: 30000,
+        }
+      );
+      
+      clearTimeout(timeoutId);
 
       const data = response.data;
 
@@ -251,10 +267,24 @@ const AIAssistant: React.FC = () => {
       if (data.cv_update) {
         applyCVUpdate(data.cv_update);
       }
-    } catch (error) {
+    } catch (error: any) {
+      // ✅ Better error messages for debugging
+      let errorMessage = "⚠️ Connection error. Please try again.";
+      
+      if (error.code === 'ECONNABORTED' || error.message === 'Network Error') {
+        errorMessage = "⚠️ Request timeout. Check your connection and try again.";
+      } else if (error.response?.status === 401) {
+        errorMessage = "⚠️ Session expired. Please log in again.";
+      } else if (error.response?.status === 500) {
+        errorMessage = "⚠️ Server error. Please try again later.";
+      } else if (!error.response) {
+        errorMessage = "⚠️ Network error. Check your internet connection.";
+      }
+      
+      console.error('Chat error:', error);
       setMessages(prev => [
         ...prev,
-        { role: 'assistant', content: "⚠️ Something went wrong. Please try again." },
+        { role: 'assistant', content: errorMessage },
       ]);
     } finally {
       setIsLoading(false);
@@ -304,15 +334,33 @@ const AIAssistant: React.FC = () => {
     setMessages(prev => [...prev, { role: 'user', content: msg }]);
     setIsLoading(true);
     setShowPreview(true);
-    axios.post<ChatResponse>(`${API_URL}/chat`, {
-      messages: [{ role: 'user', content: msg }],
-      thread_id: threadId,
-    }).then(res => {
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    
+    axios.post<ChatResponse>(
+      `${API_URL}/chat`,
+      {
+        messages: [{ role: 'user', content: msg }],
+        thread_id: threadId,
+      },
+      {
+        signal: controller.signal,
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 30000,
+      }
+    ).then(res => {
+      clearTimeout(timeoutId);
       const content = res.data.content?.split('DOWNLOAD_PATH:')[0]?.trim() ?? '';
       setMessages(prev => [...prev, { role: 'assistant', content }]);
       if (res.data.cv_update) applyCVUpdate(res.data.cv_update);
-    }).catch(() => {
-      setMessages(prev => [...prev, { role: 'assistant', content: '⚠️ Connection error. Please try again.' }]);
+    }).catch((error) => {
+      clearTimeout(timeoutId);
+      console.error('CV update error:', error);
+      const errorMsg = error.code === 'ECONNABORTED' 
+        ? '⚠️ Request timeout. Please try again.' 
+        : '⚠️ Connection error. Please try again.';
+      setMessages(prev => [...prev, { role: 'assistant', content: errorMsg }]);
     }).finally(() => setIsLoading(false));
   };
 
@@ -337,15 +385,32 @@ const AIAssistant: React.FC = () => {
         const msg = 'I want to create a professional CV';
         setMessages(prev => [...prev, { role: 'user', content: msg }]);
         setIsLoading(true);
-        axios.post<ChatResponse>(`${API_URL}/chat`, {
-          messages: [{ role: 'user', content: msg }],
-          thread_id: threadId,
-        }).then(res => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        
+        axios.post<ChatResponse>(
+          `${API_URL}/chat`,
+          {
+            messages: [{ role: 'user', content: msg }],
+            thread_id: threadId,
+          },
+          {
+            signal: controller.signal,
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 30000,
+          }
+        ).then(res => {
+          clearTimeout(timeoutId);
           const content = res.data.content?.split('DOWNLOAD_PATH:')[0]?.trim() ?? '';
           setMessages(prev => [...prev, { role: 'assistant', content }]);
           if (res.data.cv_update) applyCVUpdate(res.data.cv_update);
-        }).catch(() => {
-          setMessages(prev => [...prev, { role: 'assistant', content: '⚠️ Connection error. Please try again.' }]);
+        }).catch((error) => {
+          clearTimeout(timeoutId);
+          console.error('Quick action error:', error);
+          const errorMsg = error.code === 'ECONNABORTED' 
+            ? '⚠️ Request timeout. Please try again.' 
+            : '⚠️ Connection error. Please try again.';
+          setMessages(prev => [...prev, { role: 'assistant', content: errorMsg }]);
         }).finally(() => setIsLoading(false));
       }
     }
@@ -452,27 +517,27 @@ const AIAssistant: React.FC = () => {
           {/* Chat Interface */}
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+            <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-6 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
               {messages.length === 0 ? (
                 /* ── Empty State ── */
-                <div className="flex flex-col items-center justify-center h-full px-4">
+                <div className="flex flex-col items-center justify-center h-full px-2 sm:px-4">
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="text-center mb-10"
+                    className="text-center mb-6 sm:mb-10"
                   >
-                    <div className="w-20 h-20 bg-emerald-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
-                      <Bot size={40} className="text-emerald-400" />
+                    <div className="w-16 sm:w-20 h-16 sm:h-20 bg-emerald-500/10 rounded-3xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-inner">
+                      <Bot size={32} className="sm:w-10 sm:h-10 text-emerald-400" />
                     </div>
-                    <h2 className="text-3xl font-bold text-white mb-3 tracking-tight">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2 sm:mb-3 tracking-tight">
                       Welcome to Brain Half
                     </h2>
-                    <p className="text-slate-400 text-base max-w-sm font-medium">
+                    <p className="text-sm sm:text-base text-slate-400 max-w-sm font-medium">
                       Your personal AI expert for building premium, ATS-ready resumes in minutes.
                     </p>
                   </motion.div>
 
-                  <div className="w-full max-w-md">
+                  <div className="w-full max-w-md px-2">
                     {quickActions.map((card, idx) => (
                       <motion.button
                         key={idx}
@@ -480,14 +545,14 @@ const AIAssistant: React.FC = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.1 }}
                         onClick={card.action}
-                        className="group w-full flex items-center gap-5 p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50 hover:border-emerald-500/40 hover:bg-slate-800 hover:shadow-2xl hover:shadow-emerald-500/5 transition-all text-left mb-4"
+                        className="group w-full flex items-center gap-3 sm:gap-5 p-3 sm:p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50 hover:border-emerald-500/40 hover:bg-slate-800 hover:shadow-2xl hover:shadow-emerald-500/5 transition-all text-left mb-3 sm:mb-4 active:scale-95"
                       >
-                        <div className={`w-14 h-14 bg-gradient-to-br ${card.gradient} rounded-2xl flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform shadow-lg`}>
+                        <div className={`w-12 sm:w-14 h-12 sm:h-14 bg-gradient-to-br ${card.gradient} rounded-2xl flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform shadow-lg`}>
                           {card.icon}
                         </div>
-                        <div className="flex-1">
-                          <h3 className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors uppercase tracking-wide">{card.title}</h3>
-                          <p className="text-sm text-slate-500 mt-1 leading-relaxed font-medium">{card.desc}</p>
+                        <div className="flex-1 text-left">
+                          <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-emerald-400 transition-colors uppercase tracking-wide">{card.title}</h3>
+                          <p className="text-xs sm:text-sm text-slate-500 mt-0.5 sm:mt-1 leading-relaxed font-medium hidden sm:block">{card.desc}</p>
                         </div>
                       </motion.button>
                     ))}
@@ -509,21 +574,21 @@ const AIAssistant: React.FC = () => {
                           {msg.content}
                         </div>
                       ) : (
-                        <div className={`flex items-start gap-4 max-w-[92%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-md ${msg.role === 'user'
+                        <div className={`flex items-start gap-2 sm:gap-4 max-w-[95%] sm:max-w-[92%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                          <div className={`w-8 sm:w-10 h-8 sm:h-10 rounded-xl flex items-center justify-center shrink-0 shadow-md ${msg.role === 'user'
                             ? 'bg-emerald-500 text-white'
                             : 'bg-slate-800 border border-slate-700 text-emerald-400'
                             }`}>
-                            {msg.role === 'user' ? <User size={20} /> : <Bot size={20} />}
+                            {msg.role === 'user' ? <User size={16} className="sm:w-5 sm:h-5" /> : <Bot size={16} className="sm:w-5 sm:h-5" />}
                           </div>
 
                           <div className={`flex flex-col min-w-0 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                             <div
                               dir={isRTL(msg.content) ? 'rtl' : 'ltr'}
-                              className={`rounded-2xl text-[15px] leading-relaxed shadow-sm transition-all ${msg.role === 'user'
-                                ? 'bg-emerald-600 text-white px-5 py-4 rounded-tr-sm'
-                                : 'bg-slate-800 text-slate-100 px-5 py-4 rounded-tl-sm border border-slate-700/50'
-                                } ${isRTL(msg.content) ? 'font-arabic text-lg' : ''}`}
+                              className={`rounded-2xl text-sm sm:text-[15px] leading-relaxed shadow-sm transition-all ${msg.role === 'user'
+                                ? 'bg-emerald-600 text-white px-3 sm:px-5 py-2 sm:py-4 rounded-tr-sm'
+                                : 'bg-slate-800 text-slate-100 px-3 sm:px-5 py-2 sm:py-4 rounded-tl-sm border border-slate-700/50'
+                                } ${isRTL(msg.content) ? 'font-arabic text-lg' : 'word-break: break-word'}`}
                             >
                               {/* Render markdown for assistant, plain text for user */}
                               {msg.role === 'assistant' ? (
@@ -585,8 +650,8 @@ const AIAssistant: React.FC = () => {
         </div>
 
         {/* Input Area */}
-        <div className="px-6 py-5 border-t border-slate-800 shrink-0 bg-slate-900/50">
-          <div className="flex gap-3 items-end max-w-4xl mx-auto">
+        <div className="px-3 sm:px-6 py-4 sm:py-5 border-t border-slate-800 shrink-0 bg-slate-900/50">
+          <div className="flex gap-2 sm:gap-3 items-end max-w-4xl mx-auto">
             <div className="relative flex-1 flex items-end bg-slate-800/40 rounded-2xl p-2 transition-all group backdrop-blur-sm">
               <textarea
                 ref={textareaRef}
@@ -600,24 +665,26 @@ const AIAssistant: React.FC = () => {
                   }
                 }}
                 placeholder="Ask Brain Half anything..."
-                className={`flex-1 bg-transparent border-none focus:ring-0 outline-none px-4 py-3 text-base text-white placeholder-slate-500 resize-none transition-all min-h-[44px] max-h-[150px] ${isRTL(input) ? 'font-arabic text-xl' : ''}`}
+                className={`flex-1 bg-transparent border-none focus:ring-0 outline-none px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-white placeholder-slate-500 resize-none transition-all min-h-[44px] max-h-[150px] ${isRTL(input) ? 'font-arabic text-xl' : ''}`}
                 rows={1}
               />
 
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
-                className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all shrink-0 ${!input.trim() || isLoading
+                title={isLoading ? 'Sending...' : 'Send message'}
+                className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center transition-all shrink-0 ${!input.trim() || isLoading
                   ? 'bg-slate-700/50 text-slate-500'
-                  : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-500/30 font-bold'
+                  : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-500/30 font-bold active:scale-95'
                   }`}
               >
-                <Send size={18} />
+                <Send size={16} className="sm:hidden" />
+                <Send size={18} className="hidden sm:block" />
               </button>
             </div>
           </div>
-          <div className="flex justify-center mt-4">
-            <span className="text-[11px] text-white/90 font-bold uppercase tracking-[0.25em] px-4 py-1.5 bg-slate-800/50 rounded-full border border-slate-700/30 shadow-sm backdrop-blur-sm">
+          <div className="flex justify-center mt-3 sm:mt-4">
+            <span className="text-[10px] sm:text-[11px] text-white/90 font-bold uppercase tracking-[0.25em] px-3 sm:px-4 py-1.5 bg-slate-800/50 rounded-full border border-slate-700/30 shadow-sm backdrop-blur-sm whitespace-nowrap">
               Multi Language Intelligence
             </span>
           </div>

@@ -45,14 +45,22 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip API calls (they should always be fresh)
-  if (event.request.url.includes('/api/')) {
+  // ✅ Skip all API calls - they should never be cached
+  if (event.request.url.includes('/api/') ||
+      event.request.url.includes('/chat') ||
+      event.request.url.includes('/upload') ||
+      event.request.url.includes('/token')) {
     return;
   }
 
   event.respondWith(
     fetch(event.request)
       .then((response) => {
+        // Don't cache error responses
+        if (!response || response.status !== 200) {
+          return response;
+        }
+        
         // Clone the response
         const clonedResponse = response.clone();
 
