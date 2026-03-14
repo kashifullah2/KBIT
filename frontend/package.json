@@ -49,6 +49,7 @@
     "graceful-fs": "^4.2.11",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
+    "terser": "^5.46.0",
     "typescript": "^5.9.3",
     "vite": "^7.2.4"
   },

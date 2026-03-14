@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from langchain_core.messages import HumanMessage, AIMessage, trim_messages
 from langchain_core.tools import tool
 from langgraph.prebuilt import create_react_agent
-from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+from langgraph.checkpoint.memory import MemorySaver
 
 from llm_factory import get_llm
 
@@ -150,20 +150,22 @@ CRITICAL FORMATTING RULES FOR TOOL CALLS:
 # ---------------------------------------------------------------------------
 # Checkpointer — singleton, opened once at startup
 # ---------------------------------------------------------------------------
-_db_path = os.getenv("CV_BUDDY_DB", "cv_buddy_memory.db")
-_checkpointer_cm = AsyncSqliteSaver.from_conn_string(_db_path)
-_checkpointer = None
+# ✅ Use MemorySaver for conversation history (simpler than SQLite for now)
+_checkpointer = MemorySaver()
 
 
 async def init_checkpointer() -> None:
     """Call once at application startup (inside FastAPI lifespan)."""
     global _checkpointer
-    _checkpointer = await _checkpointer_cm.__aenter__()
+    _checkpointer = MemorySaver()
+    print("✅ In-memory conversation checkpointer initialized")
 
 
 async def close_checkpointer() -> None:
     """Call once at application shutdown."""
-    await _checkpointer_cm.__aexit__(None, None, None)
+    global _checkpointer
+    _checkpointer = None
+    print("✅ Conversation checkpointer closed")
 
 
 # ---------------------------------------------------------------------------
