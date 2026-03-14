@@ -257,12 +257,17 @@ log_success "Frontend built successfully"
 #--------------------------------------------------
 log_step "Step 5: Configuring Nginx..."
 
+# Ask for domain before Nginx configuration
+echo -e "${BLUE}🔐 Domain Configuration:${NC}"
+read -p "   Enter your domain (e.g., brainhalf.com) or press Enter for IP-only: " DOMAIN
+[ -z "$DOMAIN" ] && DOMAIN="_"
+
 NGINX_CONF="/etc/nginx/sites-available/brainhalf"
 
 cat << EOF | sudo tee $NGINX_CONF > /dev/null
 server {
     listen 80;
-    server_name _;
+    server_name ${DOMAIN:-_};
 
     # Serve React Frontend
     root $FRONTEND_DIR/dist;
@@ -277,7 +282,7 @@ server {
     }
 
     # API Routes - proxy to backend
-    location ~ ^/(chat|upload|ocr|extract|improve|signup|token|users|cv|download) {
+    location ~ ^/(chat|upload|refine|ocr|extract|improve|signup|token|users|cv|download) {
         proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
@@ -420,16 +425,16 @@ echo "   Nginx Logs:    sudo tail -f /var/log/nginx/access.log"
 echo ""
 
 # Optional: Setup HTTPS
-echo -e "${BLUE}🔐 HTTPS Setup (Optional):${NC}"
-read -p "   Enter domain for HTTPS (or press Enter to skip): " DOMAIN
-
-if [ -n "$DOMAIN" ]; then
-    echo "   Setting up Let's Encrypt SSL..."
-    if sudo certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --email admin@$DOMAIN > /dev/null 2>&1; then
+if [ "$DOMAIN" != "_" ]; then
+    echo -e "${BLUE}🔐 HTTPS Setup:${NC}"
+    echo "   Setting up Let's Encrypt SSL for $DOMAIN..."
+    sudo certbot --nginx -d "$DOMAIN" -d "www.$DOMAIN" --non-interactive --agree-tos --email admin@$DOMAIN || \
+    sudo certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --email admin@$DOMAIN
+    
+    if [ $? -eq 0 ]; then
         log_success "HTTPS configured for $DOMAIN"
-        echo "   Access: https://$DOMAIN"
     else
-        log_error "HTTPS setup failed - continuing with HTTP only"
+        log_error "HTTPS setup failed - please check if your Security Groups allow Port 80 and 443"
     fi
 fi
 
