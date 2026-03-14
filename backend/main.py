@@ -7,6 +7,7 @@ import asyncio
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.base import BaseHTTPMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from langchain_groq import ChatGroq
@@ -14,6 +15,18 @@ from langchain_core.prompts import ChatPromptTemplate
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# ---------------------------------------------------------------------------
+# Security Headers Middleware
+# ---------------------------------------------------------------------------
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=(), notifications=self"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        return response
 
 # ---------------------------------------------------------------------------
 # Lifespan — opens / closes the SQLite checkpointer cleanly
@@ -30,6 +43,9 @@ async def lifespan(app: FastAPI):
 # App
 # ---------------------------------------------------------------------------
 app = FastAPI(lifespan=lifespan)  # 🔑 must pass lifespan here
+
+# Add security headers middleware
+app.add_middleware(SecurityHeadersMiddleware)
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "*")
 app.add_middleware(

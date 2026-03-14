@@ -1,0 +1,34 @@
+{
+  "name": "Brain Half - AI Document Extractor, CV Builder & Business Idea Validator",
+  "short_name": "Brain Half",
+  "description": "Free AI-powered platform for document extraction, professional CV/resume building, and startup idea validation",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#10b981",
+  "categories": ["productivity", "utilities"],
+  "screenshots": [
+    {
+      "src": "/brainhalf-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "permissions": [],
+  "prefer_related_applications": false
+}

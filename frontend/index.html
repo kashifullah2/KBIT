@@ -46,9 +46,13 @@
   <!-- Canonical URL -->
   <link rel="canonical" href="https://brainhalf.app/" />
 
-  <!-- Theme Color -->
-  <meta name="theme-color" content="#4f46e5" />
-  <meta name="msapplication-TileColor" content="#4f46e5" />
+  <!-- Theme Color & Mobile App Experience -->
+  <meta name="theme-color" content="#10b981" />
+  <meta name="msapplication-TileColor" content="#10b981" />
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Brain Half">
 
   <!-- Structured Data - SoftwareApplication -->
   <script type="application/ld+json">
@@ -104,6 +108,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Zilla+Slab:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <!-- Google Fonts for Material Symbols Outlined -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="/manifest.json" />
+  
+  <!-- Prevent unnecessary permission prompts -->
+  <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=(), notifications=self" />
 </head>
 
 <body>
