@@ -66,13 +66,18 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
                 {/* Header */}
                 <div className="flex items-center justify-between p-8 border-b border-slate-800">
-                    <div>
-                        <h2 className="text-2xl font-black text-white tracking-tight">
-                            {mode === 'login' ? 'Welcome Back' : 'Create Account'}
-                        </h2>
-                        <p className="text-sm font-medium text-slate-500 mt-1">
-                            {mode === 'login' ? 'Login to continue your session' : 'Sign up to access all features'}
-                        </p>
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden shrink-0">
+                            <img src="/assets/logo.png" alt="Brain Half" className="w-full h-full object-contain p-1" />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-black text-white tracking-tight">
+                                {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+                            </h2>
+                            <p className="text-sm font-medium text-slate-500 mt-1">
+                                {mode === 'login' ? 'Login to continue your session' : 'Sign up to access all features'}
+                            </p>
+                        </div>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-slate-800 rounded-xl transition-all text-slate-500 hover:text-white">
                         <X className="w-5 h-5" />

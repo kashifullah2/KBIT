@@ -379,8 +379,8 @@ const AIAssistant: React.FC = () => {
             >
               <HistoryIcon size={20} />
             </button>
-            <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
-              <Bot size={22} />
+            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/10 overflow-hidden shrink-0">
+              <img src="/assets/logo.png" alt="Brain Half" className="w-full h-full object-contain p-0.5" />
             </div>
             <div>
               <h1 className="font-bold text-white text-base tracking-tight">Brain Half</h1>
@@ -587,15 +587,7 @@ const AIAssistant: React.FC = () => {
         {/* Input Area */}
         <div className="px-6 py-5 border-t border-slate-800 shrink-0 bg-slate-900/50">
           <div className="flex gap-3 items-end max-w-4xl mx-auto">
-            <div className="relative flex-1 flex items-end bg-slate-800/80 border border-slate-700 focus-within:border-emerald-500/50 focus-within:ring-4 focus-within:ring-emerald-500/5 rounded-2xl p-2 transition-all group backdrop-blur-sm">
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-700/50 hover:text-emerald-400 transition-all shrink-0"
-                title="Attach PDF"
-              >
-                <Paperclip size={20} />
-              </button>
-
+            <div className="relative flex-1 flex items-end bg-slate-800/40 rounded-2xl p-2 transition-all group backdrop-blur-sm">
               <textarea
                 ref={textareaRef}
                 value={input}
@@ -608,7 +600,7 @@ const AIAssistant: React.FC = () => {
                   }
                 }}
                 placeholder="Ask Brain Half anything..."
-                className={`flex-1 bg-transparent border-none focus:ring-0 px-4 py-3 text-base text-white placeholder-slate-500 resize-none transition-all min-h-[44px] max-h-[150px] ${isRTL(input) ? 'font-arabic text-xl' : ''}`}
+                className={`flex-1 bg-transparent border-none focus:ring-0 outline-none px-4 py-3 text-base text-white placeholder-slate-500 resize-none transition-all min-h-[44px] max-h-[150px] ${isRTL(input) ? 'font-arabic text-xl' : ''}`}
                 rows={1}
               />
 
@@ -617,7 +609,7 @@ const AIAssistant: React.FC = () => {
                 disabled={!input.trim() || isLoading}
                 className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all shrink-0 ${!input.trim() || isLoading
                   ? 'bg-slate-700/50 text-slate-500'
-                  : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-500/30'
+                  : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-500/30 font-bold'
                   }`}
               >
                 <Send size={18} />

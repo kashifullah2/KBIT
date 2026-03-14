@@ -27,8 +27,8 @@ export const Header: React.FC = () => {
                 <div className="h-14 flex items-center justify-between">
                     {/* Logo */}
                     <NavLink to="/" className="flex items-center gap-2.5 group" onClick={() => setMobileMenuOpen(false)}>
-                        <div className="bg-emerald-500 p-1.5 rounded-lg shadow-lg shadow-emerald-500/20 group-hover:shadow-emerald-500/40 transition-all">
-                            <Bot className="w-4 h-4 text-white" strokeWidth={2.5} />
+                        <div className="bg-white p-1 rounded-lg shadow-lg shadow-emerald-500/10 group-hover:shadow-emerald-500/25 transition-all w-8 h-8 flex items-center justify-center overflow-hidden">
+                            <img src="/assets/logo.png" alt="Brain Half" className="w-full h-full object-contain" />
                         </div>
                         <span className="text-base font-bold tracking-tight text-white">
                             Brain Half
