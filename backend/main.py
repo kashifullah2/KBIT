@@ -7,7 +7,7 @@ import asyncio
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from langchain_groq import ChatGroq
