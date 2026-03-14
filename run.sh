@@ -192,9 +192,8 @@ Description=Brain Half FastAPI Backend with Gunicorn
 After=network.target postgresql.service pgbouncer.service
 
 [Service]
-Type=notify
+Type=simple
 User=$ACTUAL_USER
-Group=www-data
 WorkingDirectory=$ABS_BACKEND_DIR
 Environment="PATH=$ABS_BACKEND_DIR/venv/bin:/usr/local/bin:/usr/bin:/bin"
 ExecStart=$ABS_BACKEND_DIR/venv/bin/gunicorn main:app \\
@@ -227,7 +226,8 @@ else
         log_success "Backend service started"
     else
         log_error "Failed to start backend service"
-        sudo systemctl status brainhalf-backend
+        echo -e "${YELLOW}🔍 Inspecting recent logs:${NC}"
+        sudo journalctl -u brainhalf-backend -n 20 --no-pager
         exit 1
     fi
 fi
