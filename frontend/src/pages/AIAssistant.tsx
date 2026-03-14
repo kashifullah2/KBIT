@@ -4,7 +4,9 @@ import {
   Send, User, Bot, Download, FileText, Loader2,
   FileOutput, Paperclip, X, FilePlus, Layers,
   Eye, EyeOff, RotateCcw, Maximize2, Minimize2,
-  Pencil, Trash2, RefreshCw
+  Pencil, Trash2, RefreshCw, MessageSquare, History,
+  Plus, History as HistoryIcon, LogIn, Save,
+  ZoomIn, ZoomOut
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -12,7 +14,7 @@ import useCVStore, { CVStore } from '../store/useCVStore';
 import Templates from './CVBuilder/Templates';
 import axios from 'axios';
 import { useReactToPrint } from 'react-to-print';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { API_URL } from '../config';
 import { useAuth } from '../context/AuthContext';
 
@@ -36,16 +38,17 @@ interface ChatResponse {
 /* ------------------------------------------------------------------ */
 const AIAssistant: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated } = useAuth();
 
   // ── State ──
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
   const [previewFullscreen, setPreviewFullscreen] = useState(false);
   const [messages, setMessages] = useState<Message[]>(() => {
     const saved = localStorage.getItem('chat_history');
     return saved ? JSON.parse(saved) : [];
   });
-  const [threadId] = useState(() => {
+  const [threadId, setThreadId] = useState(() => {
     const saved = localStorage.getItem('chat_thread_id');
     if (saved) return saved;
     const newId = Math.random().toString(36).substr(2, 9);
@@ -54,6 +57,8 @@ const AIAssistant: React.FC = () => {
   });
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [cvScale, setCvScale] = useState(0.6);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // ── Refs ──
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -68,8 +73,96 @@ const AIAssistant: React.FC = () => {
   const selectedTemplate = useCVStore((s) => s.selectedTemplate);
   const setTemplate = useCVStore((s) => s.setTemplate);
 
+  // ── History State ──
+  const [history, setHistory] = useState<Array<{ id: string, title: string }>>(() => {
+    const saved = localStorage.getItem('chat_history_list');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [activeThreadId, setActiveThreadId] = useState(() => {
+    return localStorage.getItem('chat_thread_id') || Math.random().toString(36).substr(2, 9);
+  });
+  const [showHistory, setShowHistory] = useState(true);
+
+  // ── Sync Active Thread ──
+  useEffect(() => {
+    localStorage.setItem('chat_thread_id', activeThreadId);
+    if (!history.find(h => h.id === activeThreadId) && messages.length > 0) {
+      const newHistory = [{
+        id: activeThreadId,
+        title: messages[0].content.substring(0, 30) + '...'
+      }, ...history];
+      setHistory(newHistory);
+      localStorage.setItem('chat_history_list', JSON.stringify(newHistory));
+    }
+    // Update existing thread title if it's the first message
+    if (messages.length > 0 && history.find(h => h.id === activeThreadId && h.title === 'New Chat...')) {
+      const newHistory = history.map(h =>
+        h.id === activeThreadId
+          ? { ...h, title: messages[0].content.substring(0, 30) + '...' }
+          : h
+      );
+      setHistory(newHistory);
+      localStorage.setItem('chat_history_list', JSON.stringify(newHistory));
+    }
+  }, [messages, activeThreadId, history]);
+
+  // ── Sync with Auth State ──
+  useEffect(() => {
+    // When authentication state changes (login/logout), re-sync local state.
+    // This is critical for privacy on shared devices.
+    const savedMessages = localStorage.getItem('chat_history');
+    setMessages(savedMessages ? JSON.parse(savedMessages) : []);
+
+    const savedHistory = localStorage.getItem('chat_history_list');
+    setHistory(savedHistory ? JSON.parse(savedHistory) : []);
+
+    const savedThread = localStorage.getItem('chat_thread_id');
+    if (!savedThread) {
+      const newId = Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('chat_thread_id', newId);
+      setThreadId(newId);
+      setActiveThreadId(newId);
+    } else {
+      setThreadId(savedThread);
+      setActiveThreadId(savedThread);
+    }
+  }, [isAuthenticated]);
+
+  // ── Database Sync ──
+  const saveCVToDB = useCallback(async () => {
+    if (!isAuthenticated) return;
+    try {
+      await axios.post(`${API_URL}/cv/save`, {
+        content: cvData,
+        filename: `${cvData.personalInfo.firstName || 'My'} CV`
+      });
+    } catch (e) {
+      console.error("Auto-save failed", e);
+    }
+  }, [cvData, isAuthenticated]);
+
+  useEffect(() => {
+    const timer = setTimeout(saveCVToDB, 2000);
+    return () => clearTimeout(timer);
+  }, [cvData, saveCVToDB]);
+
   // ── Check if CV has content ──
   const hasCVContent = cvData.personalInfo.firstName || cvData.personalInfo.lastName || cvData.experience.length > 0 || cvData.education.length > 0 || cvData.skills.length > 0;
+
+  // ── Prevent accidental refresh ──
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (messages.length > 0 || hasCVContent) {
+        const msg = "Are you sure you want to refresh? Your temporary session data might be cleared.";
+        e.preventDefault();
+        e.returnValue = msg;
+        return msg;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [messages, hasCVContent]);
 
   // ── Persist chat ──
   useEffect(() => {
@@ -168,21 +261,41 @@ const AIAssistant: React.FC = () => {
     }
   };
 
-  // ── Reset chat ──
-  const resetChat = () => {
-    if (confirm('Clear chat history?')) {
-      setMessages([]);
-      localStorage.removeItem('chat_history');
-      localStorage.removeItem('chat_thread_id');
-      window.location.reload();
+  // ── Reset chat / New Chat ──
+  const startNewChat = () => {
+    const newId = Math.random().toString(36).substr(2, 9);
+    setActiveThreadId(newId);
+    setMessages([]);
+    localStorage.setItem(`chat_history_${newId}`, JSON.stringify([]));
+    const newHistory = [{ id: newId, title: 'New Chat...' }, ...history];
+    setHistory(newHistory);
+    localStorage.setItem('chat_history_list', JSON.stringify(newHistory));
+  };
+
+  const loadHistoryChat = (id: string) => {
+    setActiveThreadId(id);
+    const saved = localStorage.getItem(`chat_history_${id}`);
+    setMessages(saved ? JSON.parse(saved) : []);
+  };
+
+  const deleteHistoryChat = (id: string) => {
+    const newHistory = history.filter(h => h.id !== id);
+    setHistory(newHistory);
+    localStorage.setItem('chat_history_list', JSON.stringify(newHistory));
+    localStorage.removeItem(`chat_history_${id}`);
+    if (activeThreadId === id) {
+      startNewChat();
     }
+  };
+
+  const resetChat = () => {
+    setMessages([]);
+    localStorage.setItem(`chat_history_${activeThreadId}`, JSON.stringify([]));
   };
 
   // ── Clear CV data ──
   const handleClearCV = () => {
-    if (confirm('Clear all CV content? This will reset the CV preview.')) {
-      clearData();
-    }
+    clearData();
   };
 
   // ── Update CV via chatbot ──
@@ -209,6 +322,7 @@ const AIAssistant: React.FC = () => {
     { name: 'Professional', value: 'professional' },
     { name: 'Creative', value: 'creative' },
     { name: 'Elegant', value: 'elegant' },
+    { name: 'Executive', value: 'two-column' },
   ];
 
   // ── Quick actions for empty state ──
@@ -234,26 +348,6 @@ const AIAssistant: React.FC = () => {
           setMessages(prev => [...prev, { role: 'assistant', content: '⚠️ Connection error. Please try again.' }]);
         }).finally(() => setIsLoading(false));
       }
-    },
-    {
-      title: 'Merge PDFs',
-      desc: 'Combine multiple documents into one PDF.',
-      icon: <Layers size={24} />,
-      gradient: 'from-blue-500 to-indigo-600',
-      action: () => {
-        const msg = 'I want to merge PDF files';
-        setMessages(prev => [...prev, { role: 'user', content: msg }]);
-      }
-    },
-    {
-      title: 'Convert to DOCX',
-      desc: 'Transform PDFs into editable Word documents.',
-      icon: <FileOutput size={24} />,
-      gradient: 'from-amber-500 to-orange-600',
-      action: () => {
-        const msg = 'I want to convert PDF to DOCX';
-        setMessages(prev => [...prev, { role: 'user', content: msg }]);
-      }
     }
   ];
 
@@ -274,192 +368,234 @@ const AIAssistant: React.FC = () => {
       {/* ═══════════════════════════════════════════════════════════ */}
       {/*  LEFT: Chat Panel                                          */}
       {/* ═══════════════════════════════════════════════════════════ */}
-      <div className={`flex flex-col bg-slate-900 border-r border-slate-800 transition-all duration-500 ${
-        showPreview ? 'w-full lg:w-[420px] xl:w-[480px]' : 'w-full max-w-3xl mx-auto'
-      }`}>
+      <div className={`flex flex-col bg-slate-900 border-r border-slate-800 transition-all duration-500 ${showPreview ? 'w-full lg:w-[520px] xl:w-[740px]' : 'w-full max-w-3xl mx-auto'
+        }`}>
 
-        {/* Chat Header */}
         <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
-              <Bot size={20} />
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className="p-2 -ml-2 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-all lg:hidden"
+            >
+              <HistoryIcon size={20} />
+            </button>
+            <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+              <Bot size={22} />
             </div>
             <div>
-              <h1 className="font-bold text-white text-sm tracking-tight">CV Buddy</h1>
+              <h1 className="font-bold text-white text-base tracking-tight">Brain Half</h1>
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                <span className="text-[10px] text-slate-400 font-medium">Online • Multilingual</span>
+                <span className="text-[11px] text-slate-400 font-medium">Online • AI Intelligence</span>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-1">
             <button
-              onClick={() => setShowPreview(!showPreview)}
-              className={`p-2 rounded-lg transition-all text-sm ${
-                showPreview
-                  ? 'bg-emerald-500/10 text-emerald-400'
-                  : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'
-              }`}
-              title={showPreview ? 'Hide Preview' : 'Show Preview'}
+              onClick={startNewChat}
+              className="p-2 rounded-lg text-slate-500 hover:text-emerald-400 hover:bg-slate-800 transition-all font-medium flex items-center gap-2"
+              title="New Chat"
             >
-              {showPreview ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-            <button
-              onClick={resetChat}
-              className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-slate-800 transition-all"
-              title="Reset Chat"
-            >
-              <RotateCcw size={18} />
+              <Plus size={20} />
+              <span className="hidden sm:inline text-xs">New Chat</span>
             </button>
           </div>
         </div>
 
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-5 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
-          {messages.length === 0 ? (
-            /* ── Empty State ── */
-            <div className="flex flex-col items-center justify-center h-full px-4">
+        <div className="flex flex-1 overflow-hidden">
+          {/* History Sidebar */}
+          <AnimatePresence>
+            {showHistory && (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center mb-10"
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: 200, opacity: 1 }}
+                exit={{ width: 0, opacity: 0 }}
+                className="hidden xl:flex flex-col bg-slate-900/40 border-r border-slate-800/80 overflow-hidden shrink-0"
               >
-                <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
-                  <Bot size={32} className="text-emerald-400" />
-                </div>
-                <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">
-                  What can I help you with?
-                </h2>
-                <p className="text-slate-400 text-sm max-w-sm">
-                  Choose an action below or type your request to get started.
-                </p>
-              </motion.div>
-
-              <div className="grid grid-cols-1 gap-3 w-full max-w-sm">
-                {quickActions.map((card, idx) => (
-                  <motion.button
-                    key={idx}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.08 }}
-                    onClick={card.action}
-                    className="group flex items-center gap-4 p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:border-emerald-500/30 hover:bg-slate-800 transition-all text-left"
-                  >
-                    <div className={`w-10 h-10 bg-gradient-to-br ${card.gradient} rounded-lg flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform`}>
-                      {card.icon}
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-white group-hover:text-emerald-400 transition-colors">{card.title}</h3>
-                      <p className="text-xs text-slate-500 mt-0.5">{card.desc}</p>
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-          ) : (
-            /* ── Message List ── */
-            <>
-              {messages.map((msg, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : msg.role === 'system' ? 'justify-center' : 'justify-start'}`}
-                >
-                  {msg.role === 'system' ? (
-                    <div className="px-3 py-1 bg-slate-800/50 border border-slate-700/50 rounded-full text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                      {msg.content}
-                    </div>
-                  ) : (
-                    <div className={`flex gap-3 max-w-[90%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                        msg.role === 'user'
-                          ? 'bg-emerald-500 text-white'
-                          : 'bg-slate-800 border border-slate-700 text-emerald-400'
-                      }`}>
-                        {msg.role === 'user' ? <User size={14} /> : <Bot size={14} />}
-                      </div>
-                      <div
-                        dir={isRTL(msg.content) ? 'rtl' : 'ltr'}
-                        className={`rounded-2xl text-sm leading-relaxed ${
-                          msg.role === 'user'
-                            ? 'bg-emerald-600 text-white px-4 py-3 rounded-tr-sm'
-                            : 'bg-slate-800 text-slate-200 px-4 py-3 rounded-tl-sm border border-slate-700/50'
-                        } ${isRTL(msg.content) ? 'font-arabic text-base' : ''}`}
+                <div className="p-4 flex-1 overflow-y-auto space-y-2 scrollbar-none">
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 px-2">Recent Chats</div>
+                  {history.map((chat) => (
+                    <div
+                      key={chat.id}
+                      className={`group flex items-center gap-2 p-2.5 rounded-xl cursor-pointer transition-all ${activeThreadId === chat.id
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                        }`}
+                      onClick={() => loadHistoryChat(chat.id)}
+                    >
+                      <MessageSquare size={14} className="shrink-0" />
+                      <span className="text-xs font-medium truncate flex-1">{chat.title}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteHistoryChat(chat.id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-all"
                       >
-                        {/* Render markdown for assistant, plain text for user */}
-                        {msg.role === 'assistant' ? (
-                          <div className="prose prose-invert prose-sm max-w-none prose-p:my-1 prose-li:my-0.5 prose-headings:text-emerald-400 prose-strong:text-white prose-a:text-emerald-400">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {msg.content.split('DOWNLOAD_PATH:')[0]}
-                            </ReactMarkdown>
-                          </div>
-                        ) : (
-                          <span>{msg.content.split('DOWNLOAD_PATH:')[0]}</span>
-                        )}
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-4 border-t border-slate-800/50">
+                  <button
+                    onClick={startNewChat}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition-all shadow-sm"
+                  >
+                    <Plus size={14} /> New Session
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-                        {/* Download button */}
-                        {msg.content.includes('DOWNLOAD_PATH:') && (
-                          <div className="mt-3 pt-3 border-t border-slate-600/50">
-                            <button
-                              onClick={() => {
-                                if (!isAuthenticated) {
-                                  if (confirm('Please sign in to download files. Go to login page?')) {
-                                    navigate('/login');
-                                  }
-                                  return;
-                                }
-                                const path = msg.content.split('DOWNLOAD_PATH:')[1].trim();
-                                window.open(`${API_URL}${path}`, '_blank');
-                              }}
-                              className="flex items-center gap-2 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all text-xs font-semibold w-fit"
-                            >
-                              <Download size={14} />
-                              Download {msg.content.split('DOWNLOAD_PATH:')[1].split('/').pop()?.trim()}
-                            </button>
+          {/* Chat Interface */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+              {messages.length === 0 ? (
+                /* ── Empty State ── */
+                <div className="flex flex-col items-center justify-center h-full px-4">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-center mb-10"
+                  >
+                    <div className="w-20 h-20 bg-emerald-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                      <Bot size={40} className="text-emerald-400" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-white mb-3 tracking-tight">
+                      Welcome to Brain Half
+                    </h2>
+                    <p className="text-slate-400 text-base max-w-sm font-medium">
+                      Your personal AI expert for building premium, ATS-ready resumes in minutes.
+                    </p>
+                  </motion.div>
+
+                  <div className="w-full max-w-md">
+                    {quickActions.map((card, idx) => (
+                      <motion.button
+                        key={idx}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        onClick={card.action}
+                        className="group w-full flex items-center gap-5 p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50 hover:border-emerald-500/40 hover:bg-slate-800 hover:shadow-2xl hover:shadow-emerald-500/5 transition-all text-left mb-4"
+                      >
+                        <div className={`w-14 h-14 bg-gradient-to-br ${card.gradient} rounded-2xl flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform shadow-lg`}>
+                          {card.icon}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors uppercase tracking-wide">{card.title}</h3>
+                          <p className="text-sm text-slate-500 mt-1 leading-relaxed font-medium">{card.desc}</p>
+                        </div>
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                /* ── Message List ── */
+                <>
+                  {messages.map((msg, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className={`flex ${msg.role === 'user' ? 'justify-end' : msg.role === 'system' ? 'justify-center' : 'justify-start'}`}
+                    >
+                      {msg.role === 'system' ? (
+                        <div className="px-4 py-1.5 bg-slate-800/50 border border-slate-700/50 rounded-full text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                          {msg.content}
+                        </div>
+                      ) : (
+                        <div className={`flex items-start gap-4 max-w-[92%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-md ${msg.role === 'user'
+                            ? 'bg-emerald-500 text-white'
+                            : 'bg-slate-800 border border-slate-700 text-emerald-400'
+                            }`}>
+                            {msg.role === 'user' ? <User size={20} /> : <Bot size={20} />}
                           </div>
-                        )}
+
+                          <div className={`flex flex-col min-w-0 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                            <div
+                              dir={isRTL(msg.content) ? 'rtl' : 'ltr'}
+                              className={`rounded-2xl text-[15px] leading-relaxed shadow-sm transition-all ${msg.role === 'user'
+                                ? 'bg-emerald-600 text-white px-5 py-4 rounded-tr-sm'
+                                : 'bg-slate-800 text-slate-100 px-5 py-4 rounded-tl-sm border border-slate-700/50'
+                                } ${isRTL(msg.content) ? 'font-arabic text-lg' : ''}`}
+                            >
+                              {/* Render markdown for assistant, plain text for user */}
+                              {msg.role === 'assistant' ? (
+                                <div className="prose prose-invert prose-emerald max-w-none prose-p:my-2 prose-p:leading-relaxed prose-li:my-1 prose-headings:text-emerald-400 prose-strong:text-white prose-a:text-emerald-400 break-words overflow-wrap-anywhere">
+                                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                    {msg.content.split('DOWNLOAD_PATH:')[0]}
+                                  </ReactMarkdown>
+                                </div>
+                              ) : (
+                                <span className="font-medium">{msg.content.split('DOWNLOAD_PATH:')[0]}</span>
+                              )}
+
+                              {/* Download button */}
+                              {msg.content.includes('DOWNLOAD_PATH:') && (
+                                <div className="mt-4 pt-4 border-t border-slate-700/50">
+                                  <button
+                                    onClick={() => {
+                                      if (!isAuthenticated) {
+                                        setShowAuthModal(true);
+                                        return;
+                                      }
+                                      const path = msg.content.split('DOWNLOAD_PATH:')[1].trim();
+                                      window.open(`${API_URL}${path}`, '_blank');
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl hover:bg-emerald-500/20 transition-all text-[13px] font-bold w-full sm:w-fit"
+                                  >
+                                    <Download size={16} />
+                                    <span>Download File</span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="flex gap-4">
+                        <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 text-emerald-400 flex items-center justify-center shadow-md">
+                          <Bot size={18} />
+                        </div>
+                        <div className="px-5 py-4 bg-slate-800 border border-slate-700/50 rounded-2xl rounded-tl-sm flex items-center gap-2">
+                          <div className="flex gap-1.5">
+                            <span className="w-2 h-2 bg-emerald-400/60 rounded-full animate-bounce" />
+                            <span className="w-2 h-2 bg-emerald-400/80 rounded-full animate-bounce [animation-delay:0.15s]" />
+                            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce [animation-delay:0.3s]" />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
-                </motion.div>
-              ))}
-
-              {/* Loading */}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-emerald-400 flex items-center justify-center">
-                      <Bot size={14} />
-                    </div>
-                    <div className="px-4 py-3 bg-slate-800 border border-slate-700/50 rounded-2xl rounded-tl-sm flex items-center gap-2">
-                      <div className="flex gap-1">
-                        <span className="w-1.5 h-1.5 bg-emerald-400/60 rounded-full animate-bounce" />
-                        <span className="w-1.5 h-1.5 bg-emerald-400/80 rounded-full animate-bounce [animation-delay:0.15s]" />
-                        <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:0.3s]" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  <div ref={messagesEndRef} />
+                </>
               )}
-              <div ref={messagesEndRef} />
-            </>
-          )}
+            </div>
+          </div>
         </div>
 
         {/* Input Area */}
-        <div className="px-4 py-4 border-t border-slate-800 shrink-0">
-          <div className="flex gap-2 items-end">
-            <div className="relative flex-1 flex items-end bg-slate-800 border border-slate-700 focus-within:border-emerald-500/50 rounded-2xl p-1.5 transition-all group">
+        <div className="px-6 py-5 border-t border-slate-800 shrink-0 bg-slate-900/50">
+          <div className="flex gap-3 items-end max-w-4xl mx-auto">
+            <div className="relative flex-1 flex items-end bg-slate-800/80 border border-slate-700 focus-within:border-emerald-500/50 focus-within:ring-4 focus-within:ring-emerald-500/5 rounded-2xl p-2 transition-all group backdrop-blur-sm">
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-700/50 hover:text-emerald-400 transition-all shrink-0"
+                className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-700/50 hover:text-emerald-400 transition-all shrink-0"
                 title="Attach PDF"
               >
-                <Paperclip size={18} />
+                <Paperclip size={20} />
               </button>
-              
+
               <textarea
                 ref={textareaRef}
                 value={input}
@@ -471,27 +607,26 @@ const AIAssistant: React.FC = () => {
                     handleSend();
                   }
                 }}
-                placeholder="Message CV Buddy..."
-                className={`flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-sm text-white placeholder-slate-500 resize-none transition-all min-h-[36px] max-h-[150px] ${isRTL(input) ? 'font-arabic text-base' : ''}`}
+                placeholder="Ask Brain Half anything..."
+                className={`flex-1 bg-transparent border-none focus:ring-0 px-4 py-3 text-base text-white placeholder-slate-500 resize-none transition-all min-h-[44px] max-h-[150px] ${isRTL(input) ? 'font-arabic text-xl' : ''}`}
                 rows={1}
               />
 
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
-                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all shrink-0 ${
-                  !input.trim() || isLoading
-                    ? 'bg-slate-700/50 text-slate-500'
-                    : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/20'
-                }`}
+                className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all shrink-0 ${!input.trim() || isLoading
+                  ? 'bg-slate-700/50 text-slate-500'
+                  : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-500/30'
+                  }`}
               >
-                <Send size={16} />
+                <Send size={18} />
               </button>
             </div>
           </div>
-          <div className="flex justify-center mt-3">
-            <span className="text-[10px] text-white/80 font-bold uppercase tracking-[0.2em] px-3 py-1 bg-slate-800/50 rounded-full border border-slate-700/30">
-              Multi Language Support
+          <div className="flex justify-center mt-4">
+            <span className="text-[11px] text-white/90 font-bold uppercase tracking-[0.25em] px-4 py-1.5 bg-slate-800/50 rounded-full border border-slate-700/30 shadow-sm backdrop-blur-sm">
+              Multi Language Intelligence
             </span>
           </div>
         </div>
@@ -507,9 +642,8 @@ const AIAssistant: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 40 }}
             transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-            className={`hidden lg:flex flex-col bg-slate-50 flex-1 overflow-hidden ${
-              previewFullscreen ? 'fixed inset-0 z-50' : ''
-            }`}
+            className={`hidden lg:flex flex-col bg-slate-50 flex-1 overflow-hidden ${previewFullscreen ? 'fixed inset-0 z-50' : ''
+              }`}
           >
             {/* Preview Toolbar */}
             <div className="px-5 py-3 border-b border-slate-200 bg-white flex items-center justify-between shrink-0">
@@ -518,11 +652,10 @@ const AIAssistant: React.FC = () => {
                   <button
                     key={opt.value}
                     onClick={() => setTemplate(opt.value)}
-                    className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                      selectedTemplate === opt.value
-                        ? 'bg-white text-slate-900 shadow-sm'
-                        : 'text-slate-500 hover:text-slate-700'
-                    }`}
+                    className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${selectedTemplate === opt.value
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-700'
+                      }`}
                   >
                     {opt.name}
                   </button>
@@ -546,6 +679,19 @@ const AIAssistant: React.FC = () => {
                   <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
                 </button>
                 <button
+                  onClick={async () => {
+                    if (!isAuthenticated) {
+                      setShowAuthModal(true);
+                      return;
+                    }
+                    await saveCVToDB();
+                  }}
+                  className="p-2 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-all"
+                  title="Save to Profile"
+                >
+                  <Save size={16} />
+                </button>
+                <button
                   onClick={() => navigate('/cv-builder/edit')}
                   className="flex items-center gap-1.5 px-3 py-2 text-emerald-600 bg-emerald-50 rounded-lg text-xs font-semibold hover:bg-emerald-100 transition-all border border-emerald-200"
                   title="Edit CV Manually"
@@ -559,12 +705,35 @@ const AIAssistant: React.FC = () => {
                 >
                   {previewFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
                 </button>
+
+                {/* Desktop Zoom Controls */}
+                <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5 ml-1">
+                  <button
+                    onClick={() => setCvScale(prev => Math.max(0.3, prev - 0.1))}
+                    className="p-1.5 rounded-md hover:bg-white hover:text-slate-900 transition-all text-slate-500"
+                    title="Zoom Out"
+                  >
+                    <ZoomOut size={14} />
+                  </button>
+                  <button
+                    onClick={() => setCvScale(0.6)}
+                    className="text-[10px] font-bold text-slate-600 px-1 hover:text-slate-900"
+                    title="Reset Zoom"
+                  >
+                    {Math.round(cvScale * 100)}%
+                  </button>
+                  <button
+                    onClick={() => setCvScale(prev => Math.min(1.5, prev + 0.1))}
+                    className="p-1.5 rounded-md hover:bg-white hover:text-slate-900 transition-all text-slate-500"
+                    title="Zoom In"
+                  >
+                    <ZoomIn size={14} />
+                  </button>
+                </div>
                 <button
                   onClick={() => {
                     if (!isAuthenticated) {
-                      if (confirm('Please sign in to export your CV. Go to login page?')) {
-                        navigate('/login');
-                      }
+                      setShowAuthModal(true);
                       return;
                     }
                     handlePrint();
@@ -583,7 +752,7 @@ const AIAssistant: React.FC = () => {
                 style={{
                   width: '210mm',
                   height: '297mm',
-                  transform: 'scale(var(--cv-scale, 0.6))',
+                  transform: `scale(${cvScale})`,
                 }}
               >
                 <Templates ref={componentRef} />
@@ -596,16 +765,7 @@ const AIAssistant: React.FC = () => {
       {/* ═══════════════════════════════════════════════════════════ */}
       {/*  MOBILE: Preview Toggle FAB                                 */}
       {/* ═══════════════════════════════════════════════════════════ */}
-      {showPreview && (
-        <div className="lg:hidden fixed bottom-24 right-4 z-40">
-          <button
-            onClick={() => setPreviewFullscreen(true)}
-            className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-3 rounded-full shadow-xl shadow-emerald-500/30 font-semibold text-sm"
-          >
-            <Eye size={18} /> Preview CV
-          </button>
-        </div>
-      )}
+
 
       {/* ═══════════════════════════════════════════════════════════ */}
       {/*  MOBILE: Fullscreen Preview Modal                           */}
@@ -625,11 +785,10 @@ const AIAssistant: React.FC = () => {
                   <button
                     key={opt.value}
                     onClick={() => setTemplate(opt.value)}
-                    className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all whitespace-nowrap ${
-                      selectedTemplate === opt.value
-                        ? 'bg-white text-slate-900 shadow-sm'
-                        : 'text-slate-500 hover:text-slate-700'
-                    }`}
+                    className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all whitespace-nowrap ${selectedTemplate === opt.value
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-700'
+                      }`}
                   >
                     {opt.name}
                   </button>
@@ -658,12 +817,26 @@ const AIAssistant: React.FC = () => {
                 >
                   <Pencil size={14} /> Edit
                 </button>
+
+                {/* Mobile Zoom Controls */}
+                <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
+                  <button
+                    onClick={() => setCvScale(prev => Math.max(0.2, prev - 0.1))}
+                    className="p-1.5 rounded-md hover:bg-white text-slate-500"
+                  >
+                    <ZoomOut size={14} />
+                  </button>
+                  <button
+                    onClick={() => setCvScale(prev => Math.min(1.0, prev + 0.1))}
+                    className="p-1.5 rounded-md hover:bg-white text-slate-500"
+                  >
+                    <ZoomIn size={14} />
+                  </button>
+                </div>
                 <button
                   onClick={() => {
                     if (!isAuthenticated) {
-                      if (confirm('Please sign in to export your CV. Go to login page?')) {
-                        navigate('/login');
-                      }
+                      setShowAuthModal(true);
                       return;
                     }
                     handlePrint();
@@ -688,7 +861,7 @@ const AIAssistant: React.FC = () => {
                 style={{
                   width: '210mm',
                   height: '297mm',
-                  transform: 'scale(0.45)',
+                  transform: `scale(${cvScale * 0.75})`,
                   transformOrigin: 'top center',
                 }}
               >
@@ -696,6 +869,57 @@ const AIAssistant: React.FC = () => {
               </div>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/*  AUTH MODAL: Sign In Required                               */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <AnimatePresence>
+        {showAuthModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAuthModal(false)}
+              className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-[2rem] p-8 shadow-2xl text-center"
+            >
+              <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <LogIn className="w-8 h-8 text-emerald-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-2">Sign In Required</h3>
+              <p className="text-slate-400 mb-8 font-medium">
+                Please sign in or create an account to save, export, or download your CV.
+              </p>
+              
+              <div className="space-y-3">
+                <button
+                  onClick={() => navigate('/login', { state: { from: location.pathname } })}
+                  className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => navigate('/signup', { state: { from: location.pathname } })}
+                  className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-2xl transition-all active:scale-[0.98]"
+                >
+                  Create Free Account
+                </button>
+                <button
+                  onClick={() => setShowAuthModal(false)}
+                  className="w-full py-3 text-slate-500 hover:text-slate-300 font-bold transition-all text-sm"
+                >
+                  Maybe Later
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

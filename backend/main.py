@@ -114,8 +114,17 @@ class ExtractedData(BaseModel):
 # ---------------------------------------------------------------------------
 
 @app.post("/chat")
-async def chat_with_agent(request: ChatRequest):
+async def chat_with_agent(
+    request: ChatRequest,
+    current_user: Optional[models.User] = Depends(auth.get_current_user_optional)
+):
     try:
+        # 1) Use user ID to isolate history if they are logged in.
+        # This ensures that even if two users have the same local thread_id,
+        # their data is perfectly separated on the server.
+        user_prefix = f"user_{current_user.id}_" if current_user else "guest_"
+        internal_thread_id = f"{user_prefix}{request.thread_id or 'default'}"
+
         # Find the last user message — only this gets sent to the agent.
         # The checkpointer already holds prior history; re-sending it would duplicate it.
         last_user_msg = next(
@@ -134,7 +143,7 @@ async def chat_with_agent(request: ChatRequest):
         # ✅ Correct signature: just a string + thread_id
         result = await get_agent_response(
             user_message=last_user_msg.content,
-            thread_id=request.thread_id or "default",
+            thread_id=internal_thread_id,
         )
 
         return {
@@ -207,13 +216,13 @@ Analyze the following text extracted from a document.
 {instruction_text}
 Return ONLY valid JSON. No markdown, no explanation.
 Structure:
-{{
+{{{{
     "summary": "Brief one-line summary of the document",
-    "fields": {{
+    "fields": {{{{
         "field_name_1": "value_1",
         "field_name_2": "value_2"
-    }}
-}}"""
+    }}}}
+}}}}"""
 
         chain = ChatPromptTemplate.from_messages([
             ("system", system_prompt),
@@ -242,6 +251,54 @@ Structure:
     except Exception as e:
         return {"filename": file.filename, "summary": "Processing Error",
                 "fields": {"error": str(e)}, "raw_text": ""}
+
+
+class RefineRequest(BaseModel):
+    current_data: Dict[str, Any]
+    raw_text: str
+    instructions: str
+
+# ---------------------------------------------------------------------------
+# /refine (Intelligent correction)
+# ---------------------------------------------------------------------------
+
+@app.post("/refine")
+async def refine_extraction(request: RefineRequest):
+    try:
+        system_prompt = f"""You are an expert data refinement assistant.
+Your goal is to correct and improve structured data based on user instructions and the raw text provided.
+
+CURRENT DATA:
+{json.dumps(request.current_data, indent=2)}
+
+USER INSTRUCTIONS:
+{request.instructions}
+
+RAW DOCUMENT TEXT:
+{request.raw_text}
+
+Analyze the instructions and the raw text to produce a CORRECTED version of the 'fields' and 'summary'.
+Return ONLY valid JSON. No markdown, no explanation.
+Structure:
+{{{{
+    "summary": "Brief updated summary",
+    "fields": {{{{
+        "key": "updated_value"
+    }}}}
+}}}}"""
+
+        chain = ChatPromptTemplate.from_messages([
+            ("system", system_prompt),
+            ("human", "Refine the extraction based on my instructions."),
+        ]) | llm
+
+        result = await chain.ainvoke({})
+        cleaned = result.content.strip().removeprefix("```json").removesuffix("```").strip()
+        return json.loads(cleaned)
+
+    except Exception as e:
+        print(f"REFINE ERROR: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ---------------------------------------------------------------------------

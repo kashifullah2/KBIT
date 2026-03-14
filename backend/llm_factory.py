@@ -24,13 +24,21 @@ def get_llm():
     if groq_key:
         try:
             from langchain_groq import ChatGroq
+            # Primary Llama 3.3
             fallback_chain.append(ChatGroq(
                 groq_api_key=groq_key,
                 model_name="llama-3.3-70b-versatile",
                 temperature=0.7,
-                max_retries=1 # Minimal retries for faster fallback
+                max_retries=1
             ))
-            logger.info("Tier 1 (Groq) added to chain.")
+            # Secondary Qwen 2.5 (High Performance)
+            fallback_chain.append(ChatGroq(
+                groq_api_key=groq_key,
+                model_name="qwen-2.5-32b",
+                temperature=0.7,
+                max_retries=1
+            ))
+            logger.info("Tier 1 (Groq Models) added to chain.")
         except Exception as e:
             logger.error(f"Failed to load Tier 1: {e}")
 
@@ -65,6 +73,7 @@ def get_llm():
             # Tier 4 (Power Free Pool & Specific User Requests)
             user_requested_models = [
                 "meta-llama/llama-3.3-70b-instruct:free",
+                "qwen/qwen-2.5-32b-instruct",
                 "meta-llama/llama-4-scout", # Advanced Scout model
                 "nousresearch/hermes-3-llama-3.1-405b:free",
                 "arcee-ai/trinity-large-preview:free",

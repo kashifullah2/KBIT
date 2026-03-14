@@ -18,7 +18,7 @@ export const Layout: React.FC = () => {
             isLoginOrSignup
                 ? "bg-slate-950 text-white"
                 : isFullViewport
-                    ? "bg-slate-950 text-slate-900"
+                    ? "bg-slate-950 text-white"
                     : "bg-slate-50 text-slate-900"
         )}>
             {!isFullViewport && !isLoginOrSignup && (

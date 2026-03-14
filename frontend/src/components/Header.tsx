@@ -31,7 +31,7 @@ export const Header: React.FC = () => {
                             <Bot className="w-4 h-4 text-white" strokeWidth={2.5} />
                         </div>
                         <span className="text-base font-bold tracking-tight text-white">
-                            KBIT
+                            Brain Half
                         </span>
                     </NavLink>
 

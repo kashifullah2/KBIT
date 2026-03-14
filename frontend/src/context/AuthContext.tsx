@@ -82,6 +82,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const logout = () => {
         setToken(null);
         setUser(null);
+        
+        // Clear chat history for privacy on logout
+        localStorage.removeItem('chat_history');
+        localStorage.removeItem('chat_history_list');
+        localStorage.removeItem('chat_thread_id');
+        
+        // Clear all individual thread histories
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('chat_history_')) {
+                localStorage.removeItem(key);
+            }
+        });
     };
 
     return (

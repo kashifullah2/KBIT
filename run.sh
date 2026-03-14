@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# KBIT One-Click Deployment Script for AWS EC2 (Ubuntu/Debian)
+# Brain Half One-Click Deployment Script for AWS EC2 (Ubuntu/Debian)
 # This script automates complete installation, setup, and deployment
 # ==============================================================================
 
@@ -18,7 +18,7 @@ trap 'echo -e "${RED}❌ Script failed at line $LINENO${NC}"; exit 1' ERR
 
 # Setup variables
 DB_NAME="user_db"
-DB_USER="${DB_USER:-kbit_user}"
+DB_USER="${DB_USER:-brainhalf_user}"
 DB_PASS="${DB_PASS:-$(openssl rand -base64 12 | tr -d '\n')}"
 GROQ_API_KEY="${GROQ_API_KEY:-}"
 OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}"
@@ -33,7 +33,7 @@ ABS_BACKEND_DIR=$(readlink -f $BACKEND_DIR)
 clear
 echo -e "${BLUE}"
 echo "╔═══════════════════════════════════════════════════════════╗"
-echo "║                    KBIT Auto-Deploy                       ║"
+echo "║                Brain Half Auto-Deploy                     ║"
 echo "║          Complete Installation & Deployment              ║"
 echo "╚═══════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
@@ -183,12 +183,12 @@ fi
 WORKERS=$(( $(nproc) * 2 + 1 ))
 
 # Create systemd service
-SERVICE_FILE="/etc/systemd/system/kbit-backend.service"
+SERVICE_FILE="/etc/systemd/system/brainhalf-backend.service"
 log_step "Creating systemd service..."
 
 cat << EOF | sudo tee $SERVICE_FILE > /dev/null
 [Unit]
-Description=KBIT FastAPI Backend with Gunicorn
+Description=Brain Half FastAPI Backend with Gunicorn
 After=network.target postgresql.service pgbouncer.service
 
 [Service]
@@ -217,22 +217,22 @@ EOF
 sudo systemctl daemon-reload
 
 # Start backend service
-if systemctl is-active --quiet kbit-backend; then
-    sudo systemctl restart kbit-backend
+if systemctl is-active --quiet brainhalf-backend; then
+    sudo systemctl restart brainhalf-backend
     log_success "Backend service restarted"
 else
-    sudo systemctl start kbit-backend
+    sudo systemctl start brainhalf-backend
     sleep 2
-    if systemctl is-active --quiet kbit-backend; then
+    if systemctl is-active --quiet brainhalf-backend; then
         log_success "Backend service started"
     else
         log_error "Failed to start backend service"
-        sudo systemctl status kbit-backend
+        sudo systemctl status brainhalf-backend
         exit 1
     fi
 fi
 
-sudo systemctl enable kbit-backend > /dev/null 2>&1
+sudo systemctl enable brainhalf-backend > /dev/null 2>&1
 
 deactivate
 
@@ -257,7 +257,7 @@ log_success "Frontend built successfully"
 #--------------------------------------------------
 log_step "Step 5: Configuring Nginx..."
 
-NGINX_CONF="/etc/nginx/sites-available/kbit"
+NGINX_CONF="/etc/nginx/sites-available/brainhalf"
 
 cat << EOF | sudo tee $NGINX_CONF > /dev/null
 server {
@@ -304,8 +304,8 @@ if [ -L /etc/nginx/sites-enabled/default ]; then
     sudo rm /etc/nginx/sites-enabled/default
 fi
 
-# Enable KBIT Nginx config
-if [ ! -L /etc/nginx/sites-enabled/kbit ]; then
+# Enable Brain Half Nginx config
+if [ ! -L /etc/nginx/sites-enabled/brainhalf ]; then
     sudo ln -s $NGINX_CONF /etc/nginx/sites-enabled/
 fi
 
@@ -363,7 +363,7 @@ else
 fi
 
 # Check Backend
-if systemctl is-active --quiet kbit-backend; then
+if systemctl is-active --quiet brainhalf-backend; then
     log_success "Backend service running"
 else
     log_error "Backend service not running"
@@ -387,7 +387,7 @@ SERVER_IP=$(hostname -I | awk '{print $1}')
 #--------------------------------------------------
 echo ""
 echo -e "${GREEN}╔═══════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║     ✅ KBIT Deployment Completed Successfully!            ║${NC}"
+echo -e "${GREEN}║   ✅ Brain Half Deployment Completed Successfully!        ║${NC}"
 echo -e "${GREEN}╚═══════════════════════════════════════════════════════════╝${NC}"
 echo ""
 echo -e "${BLUE}🌐 Access Your Application:${NC}"
@@ -401,8 +401,8 @@ echo "   Nginx: Running on port 80/443"
 echo ""
 echo -e "${BLUE}📄 Configuration Files:${NC}"
 echo "   Backend Config: $BACKEND_DIR/.env"
-echo "   Nginx Config: /etc/nginx/sites-available/kbit"
-echo "   Backend Service: /etc/systemd/system/kbit-backend.service"
+echo "   Nginx Config: /etc/nginx/sites-available/brainhalf"
+echo "   Backend Service: /etc/systemd/system/brainhalf-backend.service"
 echo ""
 echo -e "${YELLOW}⚠️  Required Setup:${NC}"
 echo "   1. Update API Keys in $BACKEND_DIR/.env:"
@@ -410,12 +410,12 @@ echo "      - GROQ_API_KEY"
 echo "      - OPENROUTER_API_KEY"
 echo ""
 echo "   2. Restart backend after updating .env:"
-echo "      sudo systemctl restart kbit-backend"
+echo "      sudo systemctl restart brainhalf-backend"
 echo ""
 echo -e "${YELLOW}📱 Useful Commands:${NC}"
-echo "   View Logs:     sudo journalctl -u kbit-backend -f"
-echo "   Restart App:   sudo systemctl restart kbit-backend"
-echo "   Check Status:  sudo systemctl status kbit-backend"
+echo "   View Logs:     sudo journalctl -u brainhalf-backend -f"
+echo "   Restart App:   sudo systemctl restart brainhalf-backend"
+echo "   Check Status:  sudo systemctl status brainhalf-backend"
 echo "   Nginx Logs:    sudo tail -f /var/log/nginx/access.log"
 echo ""
 
@@ -434,7 +434,7 @@ if [ -n "$DOMAIN" ]; then
 fi
 
 echo ""
-echo -e "${GREEN}🚀 Your KBIT application is now live!${NC}"
-echo "   Monitor logs: sudo journalctl -u kbit-backend -f"
+echo -e "${GREEN}🚀 Your Brain Half application is now live!${NC}"
+echo "   Monitor logs: sudo journalctl -u brainhalf-backend -f"
 echo ""
 

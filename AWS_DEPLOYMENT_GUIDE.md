@@ -14,10 +14,10 @@ git commit -m "Prepare for AWS deployment"
 ## Step 2: Launch an EC2 Instance
 1. Log into your **AWS Management Console**.
 2. Search for **EC2** and click **Launch Instance**.
-3. **Name**: `KBIT-Server`
+3. **Name**: `Brain-Half-Server`
 4. **OS**: Select **Ubuntu** (Ubuntu 24.04 LTS or 22.04 LTS is recommended).
 5. **Instance Type**: `t2.micro` or slightly larger depending on your user load.
-6. **Key Pair**: Click "Create new key pair", name it `kbit-key`, and download the `.pem` file. **Keep this safe!**
+6. **Key Pair**: Click "Create new key pair", name it `brainhalf-key`, and download the `.pem` file. **Keep this safe!**
 7. **Network Settings**:
    - Check **Allow SSH traffic**
    - Check **Allow HTTP traffic from the internet** (Crucial, as Nginx will serve the app on port 80).
@@ -29,8 +29,8 @@ Wait for the instance to show "Running". Click on the Instance ID, go to the **C
 Once connected to the Ubuntu terminal on AWS, run these exact commands:
 ```bash
 # Clone your repository (replace with your actual repo link)
-git clone https://github.com/yourusername/KBIT.git
-cd KBIT
+git clone https://github.com/yourusername/BrainHalf.git
+cd BrainHalf
 ```
 
 ## Step 4: Run the Deployment Script
@@ -61,7 +61,7 @@ After the script successfully completes, the backend is running but it needs you
    ```
 3. Restart the backend service to apply the keys:
    ```bash
-   sudo systemctl restart kbit-backend
+   sudo systemctl restart brainhalf-backend
    ```
 
 ## Step 6: Access Your App
@@ -73,7 +73,7 @@ Nginx is automatically reverse-proxying API calls like `/login` or `/signup` int
 - **Website not loading at all:** Ensure **Port 80** is open in the AWS Security Group for your EC2 instance.
 - **Backend errors (502 Bad Gateway):** Fast API might have crashed or isn't running. Check the logs:
   ```bash
-  sudo journalctl -u kbit-backend -f
+  sudo journalctl -u brainhalf-backend -f
   ```
 - **Nginx configuration errors:** Check the Nginx logs:
   ```bash

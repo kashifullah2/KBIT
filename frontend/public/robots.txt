@@ -1,11 +1,11 @@
-# KBIT - AI-Powered Platform
-# https://kbit.app
+# Brain Half - AI-Powered Platform
+# https://brainhalf.app
 
 User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://kbit.app/sitemap.xml
+Sitemap: https://brainhalf.app/sitemap.xml
 
 # Crawl-delay (optional, for polite crawling)
 Crawl-delay: 1

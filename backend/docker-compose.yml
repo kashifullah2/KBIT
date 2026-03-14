@@ -4,7 +4,7 @@ services:
   # Database Service
   db:
     image: postgres:15
-    container_name: kbit_db
+    container_name: brainhalf_db
     restart: always
     environment:
       POSTGRES_USER: kashif
@@ -20,7 +20,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    container_name: kbit_backend
+    container_name: brainhalf_backend
     restart: always
     ports:
       - "8000:8000"
@@ -42,7 +42,7 @@ services:
       args:
         # Pass the public IP/Domain of your server here later
         VITE_API_URL: http://localhost:8000
-    container_name: kbit_frontend
+    container_name: brainhalf_frontend
     restart: always
     ports:
       - "80:80"

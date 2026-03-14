@@ -2,339 +2,253 @@ import React from 'react';
 import { TemplateProps } from './types';
 
 const TemplateProfessional: React.FC<TemplateProps> = ({ data }) => {
-  const { personalInfo, experience, education, projects = [], skills, certifications, languages, customFields = [] } = data;
+  const { personalInfo, experience = [], education = [], projects = [], skills = [], certifications = [], languages = [], customFields = [] } = data;
 
   return (
-    <div className="w-[210mm] min-h-[297mm] bg-white font-serif text-gray-900 px-[22mm] pt-[18mm] pb-[22mm] flex flex-col">
+    <div className="w-[210mm] min-h-[297mm] bg-white text-slate-900 px-[20mm] py-[20mm] flex flex-col font-serif relative print:shadow-none print:m-0">
+      
+      {/* Structural Accent */}
+      <div className="absolute top-0 left-0 w-full h-1.5 bg-slate-800" />
 
       {/* Header */}
-      <div className="border-b-2 border-gray-800 pb-6 mb-6 text-center">
-
-        <h1 className="text-[42px] tracking-tight uppercase font-semibold mb-2 break-words">
-          {personalInfo.firstName} {personalInfo.lastName}
-        </h1>
-
-        <p className="text-[14px] font-sans tracking-[3px] text-gray-500 uppercase mb-3 break-words">
-          {personalInfo.jobTitle}
-        </p>
-
-        <div className="flex justify-center flex-wrap gap-3 text-[13px] font-sans text-gray-600">
-
-          {personalInfo.phone && <span>{personalInfo.phone}</span>}
-
-          {personalInfo.phone && personalInfo.email && <span className="text-gray-300">•</span>}
-
-          {personalInfo.email && <span className="break-all">{personalInfo.email}</span>}
-
-          {personalInfo.email && personalInfo.address && <span className="text-gray-300">•</span>}
-
-          {personalInfo.address && (
-            <span className="max-w-[420px] text-center break-words">
-              {personalInfo.address}
-            </span>
-          )}
-
-        </div>
-
-        {(personalInfo.linkedin || personalInfo.github) && (
-          <div className="flex justify-center gap-4 text-[13px] mt-2 font-sans">
-
-            {personalInfo.linkedin && (
-              <a
-                href={personalInfo.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-800 break-all"
-              >
-                {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}
-              </a>
-            )}
-
-            {personalInfo.linkedin && personalInfo.github && <span className="text-gray-300">•</span>}
-
-            {personalInfo.github && (
-              <a
-                href={personalInfo.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-800 hover:text-gray-600 break-all"
-              >
-                github.com/{personalInfo.github.split('/').pop()}
-              </a>
-            )}
-
+      <header className="mb-8 border-b-2 border-slate-100 pb-8 overflow-hidden">
+        <div className="flex flex-col items-center">
+          <h1 className="text-[38px] font-bold text-slate-900 uppercase tracking-tighter leading-tight mb-2 text-center">
+            {personalInfo.firstName} <span className="text-slate-500 font-medium">{personalInfo.lastName}</span>
+          </h1>
+          
+          <div className="text-[14px] font-sans font-bold uppercase tracking-[3px] text-slate-500 mb-6 px-4 py-1 border-x border-slate-200">
+            {personalInfo.jobTitle || 'Professional Title'}
           </div>
-        )}
 
-      </div>
+          <div className="flex flex-wrap justify-center items-center gap-y-2 gap-x-6 text-[12px] font-sans text-slate-600 font-medium">
+            {personalInfo.email && (
+              <span className="flex items-center gap-1.5 hover:text-slate-900 transition-colors">
+                <span className="w-1.5 h-1.5 bg-slate-300 rounded-full" />
+                {personalInfo.email}
+              </span>
+            )}
+            {personalInfo.phone && (
+              <span className="flex items-center gap-1.5 hover:text-slate-900 transition-colors">
+                <span className="w-1.5 h-1.5 bg-slate-300 rounded-full" />
+                {personalInfo.phone}
+              </span>
+            )}
+            {personalInfo.address && (
+              <span className="flex items-center gap-1.5 hover:text-slate-900 transition-colors max-w-[300px] truncate">
+                <span className="w-1.5 h-1.5 bg-slate-300 rounded-full" />
+                {personalInfo.address}
+              </span>
+            )}
+          </div>
 
-      <div className="flex-1">
-
-        {/* Summary */}
-        {personalInfo.summary && (
-          <section className="mb-6 break-inside-avoid">
-
-            <h2 className="text-[18px] font-bold uppercase tracking-wider border-b border-gray-300 mb-3 pb-1">
-              Professional Summary
-            </h2>
-
-            <p className="text-[14px] leading-relaxed text-gray-700 text-justify font-sans whitespace-pre-wrap break-words">
-              {personalInfo.summary}
-            </p>
-
-          </section>
-        )}
-
-        {/* Experience */}
-        {experience && experience.length > 0 && (
-          <section className="mb-6 break-inside-avoid">
-
-            <h2 className="text-[18px] font-bold uppercase tracking-wider border-b border-gray-300 mb-4 pb-1">
-              Experience
-            </h2>
-
-            <div className="space-y-5">
-
-              {experience.map((exp, i) => (
-                <div key={i}>
-
-                  <div className="flex justify-between items-baseline mb-1">
-
-                    <h3 className="font-bold text-[15px] text-gray-900">
-                      {exp.title}
-                    </h3>
-
-                    <span className="text-[13px] font-sans text-gray-500 italic">
-                      {exp.startDate} {exp.endDate ? `- ${exp.endDate}` : ''}
-                    </span>
-
-                  </div>
-
-                  <div className="text-[13px] font-semibold text-gray-700 mb-2 font-sans uppercase tracking-wide">
-                    {exp.company}
-                  </div>
-
-                  <div className="text-[14px] leading-relaxed text-gray-700 font-sans ml-4">
-
-                    {exp.description?.split('\n')
-                      .map(line => line.trim())
-                      .filter(Boolean)
-                      .map((line, j) => {
-                        const text = line.replace(/^- /, '');
-
-                        return (
-                          <div key={j} className="flex gap-2 mb-1.5 break-words">
-
-                            {line.startsWith('-') && (
-                              <span className="text-gray-400 shrink-0">•</span>
-                            )}
-
-                            <span>{text}</span>
-
-                          </div>
-                        );
-                      })}
-
-                  </div>
-
-                </div>
-              ))}
-
+          {(personalInfo.linkedin || personalInfo.github) && (
+            <div className="mt-3 flex items-center gap-4 text-[11px] font-sans text-slate-400 font-bold uppercase tracking-widest">
+              {personalInfo.linkedin && (
+                <a href={personalInfo.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 transition-colors">
+                  LinkedIn
+                </a>
+              )}
+              {personalInfo.linkedin && personalInfo.github && <span className="text-slate-200">/</span>}
+              {personalInfo.github && (
+                <a href={personalInfo.github} target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 transition-colors">
+                  GitHub
+                </a>
+              )}
             </div>
+          )}
+        </div>
+      </header>
 
+      <main className="flex-1 space-y-8">
+        
+        {/* Professional Summary */}
+        {personalInfo.summary && (
+          <section className="break-inside-avoid">
+            <div className="flex gap-6">
+              <div className="w-40 shrink-0">
+                <h2 className="text-[13px] font-sans font-extrabold uppercase tracking-[0.2em] text-slate-800 pt-1">
+                  Profile
+                </h2>
+              </div>
+              <div className="flex-1">
+                <p className="text-[13px] font-sans leading-relaxed text-slate-700 text-left whitespace-pre-wrap">
+                  {personalInfo.summary}
+                </p>
+              </div>
+            </div>
           </section>
         )}
 
-        {/* Projects */}
-        {projects && projects.length > 0 && (
-          <section className="mb-6 break-inside-avoid">
-            <h2 className="text-[18px] font-bold uppercase tracking-wider border-b border-gray-300 mb-4 pb-1">
-              Projects
-            </h2>
-            <div className="space-y-4">
-              {projects.map((proj, i) => (
-                <div key={i}>
-                  <div className="flex justify-between items-baseline mb-1">
-                    <h3 className="font-bold text-[15px] text-gray-900">
-                      {proj.name}
-                      {proj.link && (
-                        <a href={proj.link} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 font-normal text-[12px] font-sans">
-                          [Link]
-                        </a>
-                      )}
-                    </h3>
-                    <span className="text-[13px] font-sans text-gray-500 italic">
-                      {proj.startDate} {proj.endDate ? `- ${proj.endDate}` : ''}
-                    </span>
+        {/* Work Experience */}
+        {experience.length > 0 && (
+          <section>
+            <div className="flex gap-6">
+              <div className="w-40 shrink-0">
+                <h2 className="text-[13px] font-sans font-extrabold uppercase tracking-[0.2em] text-slate-800 pt-1">
+                  Experience
+                </h2>
+              </div>
+              <div className="flex-1 space-y-6">
+                {experience.map((exp, i) => (
+                  <div key={i} className="break-inside-avoid group">
+                    <div className="flex justify-between items-baseline mb-1">
+                      <h3 className="text-[16px] font-bold text-slate-900 group-hover:text-slate-700 transition-colors">
+                        {exp.title}
+                      </h3>
+                      <span className="text-[11px] font-sans font-bold text-slate-400 uppercase tracking-wider italic">
+                        {exp.startDate} — {exp.endDate || 'Present'}
+                      </span>
+                    </div>
+                    <div className="text-[12px] font-sans font-extrabold text-slate-600 uppercase tracking-widest mb-3">
+                      {exp.company}
+                    </div>
+                    <div className="text-[13px] font-sans leading-relaxed text-slate-700 space-y-1.5 ml-4">
+                      {exp.description?.split('\n')
+                        .map(line => line.trim())
+                        .filter(Boolean)
+                        .map((line, j) => (
+                          <div key={j} className="relative pl-4">
+                            <span className="absolute left-0 top-[8px] w-1.5 h-1.5 bg-slate-300 rounded-full" />
+                            {line.startsWith('-') ? line.substring(1).trim() : line}
+                          </div>
+                        ))}
+                    </div>
                   </div>
-                  <p className="text-[14px] leading-relaxed text-gray-700 font-sans text-justify whitespace-pre-wrap break-words">
-                    {proj.description}
-                  </p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </section>
         )}
 
         {/* Education */}
-        {education && education.length > 0 && (
-          <section className="mb-6 break-inside-avoid">
-
-            <h2 className="text-[18px] font-bold uppercase tracking-wider border-b border-gray-300 mb-4 pb-1">
-              Education
-            </h2>
-
-            <div className="space-y-4">
-
-              {education.map((edu, i) => (
-                <div key={i} className="flex justify-between items-baseline">
-
-                  <div>
-
-                    <h3 className="font-bold text-[15px] text-gray-900">
-                      {edu.school}
-                    </h3>
-
-                    <p className="text-[14px] text-gray-700 font-sans">
-                      {edu.degree}
-                    </p>
-
-                  </div>
-
-                  <span className="text-[13px] font-sans text-gray-500 italic">
-                    {edu.startDate} {edu.endDate ? `- ${edu.endDate}` : ''}
-                  </span>
-
-                </div>
-              ))}
-
-            </div>
-
-          </section>
-        )}
-
-        {/* Certifications */}
-        {certifications && certifications.length > 0 && (
-          <section className="mb-6 break-inside-avoid">
-
-            <h2 className="text-[18px] font-bold uppercase tracking-wider border-b border-gray-300 mb-4 pb-1">
-              Certifications
-            </h2>
-
-            <div className="space-y-3">
-
-              {certifications.map((cert, i) => (
-                <div key={i} className="flex justify-between items-baseline">
-
-                  <div>
-
-                    <h3 className="font-bold text-[15px] text-gray-900">
-                      {cert.name}
-                    </h3>
-
-                    <p className="text-[12px] text-gray-700 font-sans uppercase tracking-wide">
-                      {cert.issuer}
-                    </p>
-
-                  </div>
-
-                  {cert.date && (
-                    <span className="text-[13px] font-sans text-gray-500 italic">
-                      {cert.date}
-                    </span>
-                  )}
-
-                </div>
-              ))}
-
-            </div>
-
-          </section>
-        )}
-
-        <div className="grid grid-cols-2 gap-10">
-
-          {/* Skills */}
-          {skills && skills.length > 0 && (
-            <div className="break-inside-avoid">
-
-              <h2 className="text-[18px] font-bold uppercase tracking-wider border-b border-gray-300 mb-3 pb-1">
-                Skills & Expertise
-              </h2>
-
-              <div className="text-[14px] font-sans text-gray-700 leading-relaxed uppercase tracking-wider">
-                {skills.join(' • ')}
+        {education.length > 0 && (
+          <section>
+            <div className="flex gap-6">
+              <div className="w-40 shrink-0">
+                <h2 className="text-[13px] font-sans font-extrabold uppercase tracking-[0.2em] text-slate-800 pt-1">
+                  Education
+                </h2>
               </div>
+              <div className="flex-1 space-y-5">
+                {education.map((edu, i) => (
+                  <div key={i} className="break-inside-avoid flex justify-between items-start">
+                    <div>
+                      <h3 className="text-[15px] font-bold text-slate-900">{edu.school}</h3>
+                      <p className="text-[12px] font-sans font-bold text-slate-500 uppercase tracking-wide">{edu.degree}</p>
+                    </div>
+                    <span className="text-[11px] font-sans font-bold text-slate-400 italic">
+                      {edu.startDate} — {edu.endDate || 'Present'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
+        {/* Skills - Modern Grid */}
+        {skills.length > 0 && (
+          <section className="break-inside-avoid">
+            <div className="flex gap-6">
+              <div className="w-40 shrink-0">
+                <h2 className="text-[13px] font-sans font-extrabold uppercase tracking-[0.2em] text-slate-800 pt-1">
+                  Expertise
+                </h2>
+              </div>
+              <div className="flex-1">
+                <div className="flex flex-wrap gap-2">
+                  {skills.map((skill, i) => (
+                    <span key={i} className="px-3 py-1 bg-slate-100 text-slate-700 font-sans font-bold text-[10px] uppercase tracking-widest rounded-sm border border-slate-200/50">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Certifications / Projects / Others */}
+        <div className="grid grid-cols-2 gap-12">
+          {certifications.length > 0 && (
+            <div className="break-inside-avoid">
+              <h2 className="text-[13px] font-sans font-extrabold uppercase tracking-[0.2em] text-slate-800 mb-4 border-b border-slate-200 pb-2">
+                Certifications
+              </h2>
+              <div className="space-y-4">
+                {certifications.map((cert, i) => (
+                  <div key={i}>
+                    <h3 className="text-[13px] font-bold text-slate-800 leading-tight">{cert.name}</h3>
+                    <p className="text-[11px] font-sans font-bold text-slate-500 uppercase tracking-wide mt-0.5">{cert.issuer}</p>
+                    {cert.date && <p className="text-[10px] font-sans text-slate-400 italic mt-0.5">{cert.date}</p>}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Languages */}
-          {languages && languages.length > 0 && (
+          {languages.length > 0 && (
             <div className="break-inside-avoid">
-
-              <h2 className="text-[18px] font-bold uppercase tracking-wider border-b border-gray-300 mb-3 pb-1">
+              <h2 className="text-[13px] font-sans font-extrabold uppercase tracking-[0.2em] text-slate-800 mb-4 border-b border-slate-200 pb-2">
                 Languages
               </h2>
-
-              <div className="text-[14px] font-sans text-gray-700 leading-relaxed uppercase tracking-wider">
-                {languages.map(l => l.name).join(' • ')}
+              <div className="space-y-3">
+                {languages.map((lang, i) => (
+                  <div key={i} className="flex justify-between items-center text-[13px] font-sans">
+                    <span className="font-bold text-slate-700">{lang.name}</span>
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                      {lang.level || 'Fluent'}
+                    </span>
+                  </div>
+                ))}
               </div>
-
             </div>
           )}
-
         </div>
 
-        {/* Custom Fields */}
-        {customFields && customFields.length > 0 && (
-          <section className="mb-6 break-inside-avoid mt-4">
-            <div className="space-y-6">
-
-              {customFields.map((field, i) => (
-                <div key={i} className="font-sans">
-                  {field.title && (
+        {/* Projects (Full Width) */}
+        {projects.length > 0 && (
+          <section>
+            <div className="flex gap-6">
+              <div className="w-40 shrink-0">
+                <h2 className="text-[13px] font-sans font-extrabold uppercase tracking-[0.2em] text-slate-800 pt-1">
+                  Projects
+                </h2>
+              </div>
+              <div className="flex-1 space-y-6">
+                {projects.map((proj, i) => (
+                  <div key={i} className="break-inside-avoid">
                     <div className="flex justify-between items-baseline mb-1">
-                      <h3 className="font-bold text-[15px] text-gray-900">
-                        {field.title}
-                        {field.link && (
-                          <a href={field.link} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 font-normal text-[12px]">
-                            [Link]
-                          </a>
-                        )}
+                      <h3 className="text-[15px] font-bold text-slate-900 group-hover:text-slate-700 transition-colors uppercase">
+                        {proj.name}
                       </h3>
-                      {(field.startDate || field.endDate) && (
-                        <span className="text-[13px] text-gray-500 italic">
-                          {field.startDate} {field.endDate ? `- ${field.endDate}` : ''}
-                        </span>
-                      )}
+                      <span className="text-[11px] font-sans font-bold text-slate-400 uppercase tracking-wider italic">
+                        {proj.startDate} — {proj.endDate || 'Present'}
+                      </span>
                     </div>
-                  )}
-                  {field.subtitle && (
-                    <div className="text-[13px] font-semibold text-gray-700 mb-1 uppercase tracking-wide">
-                      {field.subtitle}
-                    </div>
-                  )}
-                  {field.location && (
-                    <div className="text-[12px] text-gray-500 mb-2 italic">
-                      {field.location}
-                    </div>
-                  )}
-                  {field.description && (
-                    <p className="text-[14px] leading-relaxed text-gray-700 whitespace-pre-wrap break-words">
-                      {field.description}
+                    <p className="text-[12px] font-sans leading-relaxed text-slate-600 mb-2 italic">
+                      {proj.description}
                     </p>
-                  )}
-                </div>
-              ))}
-
+                    {proj.link && (
+                      <a href={proj.link} target="_blank" rel="noopener noreferrer" className="text-[11px] font-sans font-bold text-slate-400 underline uppercase tracking-tighter">
+                        View Project
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-
           </section>
         )}
 
-      </div>
+      </main>
 
+      {/* Modern Footer Divider */}
+      <footer className="mt-12 pt-8 border-t border-slate-100 flex justify-between items-center opacity-50">
+        <span className="text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-slate-400">Personal Data & References available upon request</span>
+        <span className="w-8 h-1 bg-slate-200" />
+      </footer>
     </div>
   );
 };
