@@ -4,9 +4,11 @@ import os
 import datetime
 import json
 import asyncio
+from functools import lru_cache
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZIPMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
@@ -26,6 +28,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
         response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Cache-Control"] = "public, max-age=3600"
         return response
 
 # ---------------------------------------------------------------------------
@@ -43,6 +46,9 @@ async def lifespan(app: FastAPI):
 # App
 # ---------------------------------------------------------------------------
 app = FastAPI(lifespan=lifespan)  # 🔑 must pass lifespan here
+
+# ✅ Add GZIP compression for responses
+app.add_middleware(GZIPMiddleware, minimum_size=1000)
 
 # Add security headers middleware
 app.add_middleware(SecurityHeadersMiddleware)
@@ -178,9 +184,14 @@ async def chat_with_agent(
 # /upload  (OCR + structured extraction)
 # ---------------------------------------------------------------------------
 
+@lru_cache(maxsize=1)
+def get_cached_ocr_engines():
+    """Cache the list of available OCR engines"""
+    return get_available_engines()
+
 @app.get("/ocr/engines")
 async def list_ocr_engines():
-    return {"engines": get_available_engines()}
+    return {"engines": get_cached_ocr_engines()}
 
 
 @app.post("/upload")
